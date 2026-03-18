@@ -1,75 +1,143 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with this repository.
+このプロジェクトは居酒屋 **「きたげん」** の公式サイトです。
+
+目的は、初来店の人に「入りやすそう」「ちゃんとしてそう」と感じてもらい、  
+**メニュー / 店舗情報 / アンケート**へ自然に誘導することです。
 
 ---
 
-## Project Overview
+# 技術スタック
 
-This project is the official website for **きたげん（居酒屋）**.
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
 
-### Purpose (Most Important)
-- Convey the restaurant’s atmosphere to first-time visitors
-- Create trust and a “proper, reliable shop” impression
-- Serve as a simple entry point to the customer survey system
-
-### Target Audience
-- First-time customers
-- Repeat customers checking menu / hours
-- Customers guided to the survey via QR or button
+ルーティングは `app/` ディレクトリを使用する。
 
 ---
 
-## Content & Pages
+# サイトの思想
 
-The site is intentionally **small and simple**.
+このサイトは **派手なサイトではなく、落ち着いた個人店の安心感**を伝える。
 
-Planned pages:
-- **Top**: Concept, atmosphere, basic introduction
-- **Menu**: Menu images (photo-based, not complex data)
-- **Shop Info**: Address, map, opening hours
-- **News / Announcements**: Low-frequency updates
-- **Survey Link**: Clear CTA button leading to the external survey system
+重視すること：
 
----
+- シンプル
+- 見やすい
+- スマホ優先
+- 写真を主役にする
+- 居酒屋らしい温かみ
 
-## Editing & Operation Policy
+避けること：
 
-- **Primary editor**: Shop owner (father)
-- Editing scope:
-  - Text replacement
-  - Image replacement
-- No layout or structural changes by the owner
-
-Design principle:
-- Simple
-- Hard to break
-- No complex CMS unless necessary
-
-If CMS-like behavior is needed, prefer:
-- Very simple content structure
-- Minimal custom admin logic
+- 派手すぎるデザイン
+- 安っぽいUI
+- チェーン店のような雰囲気
 
 ---
 
-## Technical Stack
+# ページ構成
 
-- **Framework**: Next.js (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Priority**: Stability and simplicity over advanced features
+トップ `/`
 
-Avoid:
-- Over-engineering
-- Complex state management
-- Heavy backend logic for this site
+- ヒーロー（写真 / 店名 / キャッチコピー）
+- メニュー導線
+- 店舗情報導線
+- アンケート導線
+
+メニュー `/menu`
+
+- フード / ドリンク
+- HTMLベースの見やすいメニュー
+- 必要に応じてPDFリンク
+
+店舗情報 `/info`
+
+- 営業時間
+- アクセス
+- 店舗外観写真
+
+お知らせ `/news`
+
+- シンプルな一覧
+
+アンケート `/survey`
+
+- アンケート説明
+- 外部リンクまたは内部導線
 
 ---
 
-## Build and Development Commands
+# デザインルール
 
-```bash
-npm install
-npm run dev
-npm run build
-npm run lint
+- スマホ表示を最優先
+- 余白をしっかり取る
+- 文字を読みやすくする
+- 写真が入っても破綻しないレイアウト
+
+色の方向性：
+
+- ベージュ
+- アイボリー
+- 淡いグレー
+- ブラウン
+
+暗すぎるサイトにはしない。
+
+---
+
+# UI構成
+
+ヘッダー
+
+- 店名
+- ハンバーガーメニュー
+
+フッター
+
+- 店名
+- 簡易リンク
+- コピーライト
+
+メイン導線：
+
+- メニュー
+- 店舗情報
+- アンケート
+
+---
+
+# 実装ルール
+
+- 既存コードを壊さず改善する
+- モバイルUIを優先
+- コンポーネント分割する
+- 再利用できる構造にする
+
+---
+
+# 写真
+
+飲食店サイトなので **写真は重要要素**。
+
+- ヒーロー写真
+- 料理写真
+- 店舗写真
+
+は後から差し替えやすい設計にする。
+
+---
+
+# 現在のフェーズ
+
+現在は **UI構築フェーズ**。
+
+優先順位：
+
+1. トップページ完成度向上
+2. ヒーロー / ヘッダー改善
+3. メニューページ強化
+4. 店舗情報ページ
+5. 写真差し替え
+6. コンテンツ整理

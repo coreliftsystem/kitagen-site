@@ -1,26 +1,140 @@
 @import "tailwindcss";
 
+/* ─── カラーパレット ───────────────────────────────────────
+   居酒屋ウォームテーマ。
+   和紙・古木・灯り・麻布をイメージした、落ち着きのある温かいトーン。
+   カフェ寄りにならず、個人居酒屋らしい温かみと上品さを両立する。
+   ─ background (明るい生成り) がカード面
+   ─ card-bg (少し深みのある麻色) がセクション背景
+   ─ カードが浮いて見えるコントラスト構成
+────────────────────────────────────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f5eed8;   /* 生成り・和紙色（カード面・ページ基調の明るい面） */
+  --foreground: #1a1508;   /* 漆墨のような深いウォームブラウン */
+  --accent:     #9e6424;   /* 古木・醤油がかったブラウンアンバー */
+  --accent-dark:#835319;   /* さらに深い焦げ木色 */
+  --muted:      #78684e;   /* 枯れ草・枯茶のウォームトープ */
+  --card-bg:    #e8dfc8;   /* 麻・畳色のセクション背景（カードより少し濃い） */
+  --border:     #c8b88c;   /* 竹・金茶のボーダー */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-accent:     var(--accent);
+  --color-accent-dark:var(--accent-dark);
+  --color-muted:      var(--muted);
+  --color-card-bg:    var(--card-bg);
+  --color-border:     var(--border);
+  --font-sans:        var(--font-noto-sans-jp);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  /* 和紙のような極微細なテクスチャ（ほんのり・見えるか見えないか程度） */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  color:       var(--foreground);
+  font-family: "Noto Sans JP", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: rgba(158, 100, 36, 0.2);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ─── Hero entrance animations ─── */
+
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-animate {
+  animation: heroFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero-animate-delay {
+  animation: heroFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+
+.hero-animate-delay-2 {
+  animation: heroFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+}
+
+/* ─── Scroll reveal ─── */
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Button lift ─── */
+
+.btn-lift {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(158, 100, 36, 0.22);
+}
+
+.btn-lift:active {
+  transform: scale(0.96);
+  box-shadow: none;
+  transition-duration: 0.08s;
+}
+
+/* ─── Text shadow ─── */
+
+.text-shadow {
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6), 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ─── Card lift ─── */
+
+.card-lift {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.28s ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 14px 36px rgba(90, 65, 30, 0.13);
+}
+
+.card-lift:active {
+  transform: scale(0.98);
+  box-shadow: 0 4px 12px rgba(90, 65, 30, 0.08);
+  transition-duration: 0.08s;
+}
+
+/* ─── Scrollbar hide (横スクロール用) ─── */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

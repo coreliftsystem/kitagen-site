@@ -1,0 +1,229 @@
+﻿import type { Metadata } from "next";
+import Image from "next/image";
+import { Utensils } from "lucide-react";
+import { getMenusForTop, getMenusForMenuPage, groupByCategorySub } from "../lib/menus";
+
+// ドリンクカテゴリの表示順（居酒屋として自然な並び）
+// この定数を編集するだけで順番を変更できる
+const DRINK_CATEGORY_ORDER = [
+  "生ビール",
+  "瓶ビール",
+  "ハイボール",
+  "サワー",
+  "果実酒",
+  "梅酒",
+  "日本酒",
+  "焼酎",
+  "ワイン",
+  "ノンアル",
+  "ソフトドリンク",
+] as const;
+
+type CategorySection = { heading: string; items: { id: string; name: string; description?: string; price?: string }[] };
+
+function sortDrinkSections(sections: CategorySection[]): CategorySection[] {
+  return [...sections].sort((a, b) => {
+    const ai = DRINK_CATEGORY_ORDER.indexOf(a.heading as typeof DRINK_CATEGORY_ORDER[number]);
+    const bi = DRINK_CATEGORY_ORDER.indexOf(b.heading as typeof DRINK_CATEGORY_ORDER[number]);
+    // 定数にないカテゴリは末尾に回す
+    const aOrder = ai === -1 ? Infinity : ai;
+    const bOrder = bi === -1 ? Infinity : bi;
+    return aOrder - bOrder;
+  });
+}
+
+export const metadata: Metadata = {
+  title: "メニュー｜きたげん",
+  description: "きたげんのフード・ドリンクメニューをご覧いただけます。",
+};
+
+function SectionHeading({ label, title }: { label: string; title: string }) {
+  return (
+    <div className="mb-10">
+      <p className="text-[10px] tracking-[0.45em] text-accent/80 mb-2">{label}</p>
+      <h2 className="text-xl font-bold text-foreground">{title}</h2>
+      <div className="flex items-center gap-3 mt-3">
+        <div className="w-8 h-px bg-accent/50" />
+        <div className="w-1 h-1 rounded-full bg-accent/60" />
+        <div className="w-8 h-px bg-accent/50" />
+      </div>
+    </div>
+  );
+}
+
+function MenuItemRow({
+  name,
+  description,
+  price,
+}: {
+  name:         string;
+  description?: string;
+  price?:       string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-4 border-b border-border/70 last:border-0 group">
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-foreground text-sm leading-snug group-hover:text-accent transition-colors duration-200">
+          {name}
+        </p>
+        {description && (
+          <p className="text-xs text-muted mt-0.5 leading-relaxed">{description}</p>
+        )}
+      </div>
+      {price && (
+        <p className="text-sm text-accent font-medium shrink-0 tabular-nums">{price}</p>
+      )}
+    </div>
+  );
+}
+
+// フード・ドリンク共通のカテゴリセクション
+// セクション背景: bg-card-bg　カード背景: bg-background　で統一
+function MenuCategorySection({
+  id,
+  label,
+  title,
+  sections,
+}: {
+  id:       string;
+  label:    string;
+  title:    string;
+  sections: CategorySection[];
+}) {
+  return (
+    <section id={id} className="py-16 px-4 bg-card-bg scroll-mt-28">
+      <div className="max-w-3xl mx-auto">
+        <SectionHeading label={label} title={title} />
+        <div className="space-y-10">
+          {sections.map((sec) => (
+            <div key={sec.heading}>
+              <h3 className="text-xs tracking-widest text-muted mb-1 uppercase">{sec.heading}</h3>
+              <div className="bg-background rounded-xl border border-border px-5">
+                {sec.items.map((item) => (
+                  <MenuItemRow
+                    key={item.id}
+                    name={item.name}
+                    description={item.description}
+                    price={item.price}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default async function MenuPage() {
+  const [allItems, popularItems] = await Promise.all([
+    getMenusForMenuPage(),
+    getMenusForTop(),
+  ]);
+  const foodSections  = groupByCategorySub(allItems.filter((i) => i.category_main === "food"));
+  const drinkSections = sortDrinkSections(
+    groupByCategorySub(allItems.filter((i) => i.category_main === "drink")),
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+
+      <section className="bg-card-bg border-b border-border py-16 px-4 text-center">
+        <p className="text-[10px] tracking-[0.5em] text-accent/80 mb-3">MENU</p>
+        <h1 className="text-4xl font-bold text-foreground mb-4">メニュー</h1>
+        <div className="flex items-center justify-center gap-4">
+          <div className="w-10 h-px bg-accent/40" />
+          <div className="w-1.5 h-1.5 rounded-full bg-accent/60" />
+          <div className="w-10 h-px bg-accent/40" />
+        </div>
+        <p className="text-sm text-muted mt-5">
+          ※ 仕入れ状況により内容が変わる場合があります。最新情報は店頭にてご確認ください。
+        </p>
+      </section>
+
+      <div className="sticky top-[57px] z-30 bg-background border-b border-border">
+        <div className="max-w-3xl mx-auto px-4 flex">
+          {[
+            { href: "#popular", label: "人気メニュー" },
+            { href: "#food",    label: "フード"       },
+            { href: "#drink",   label: "ドリンク"     },
+          ].map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              className="flex-1 text-center py-4 text-sm text-muted hover:text-accent transition-colors border-b-2 border-transparent hover:border-accent/60"
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <section id="popular" className="py-16 px-4 scroll-mt-28">
+        <div className="max-w-3xl mx-auto">
+          <SectionHeading label="POPULAR" title="人気メニュー" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {popularItems.map((item) => (
+              <div
+                key={item.id}
+                className="group bg-card-bg rounded-xl border border-border overflow-hidden hover:-translate-y-1 hover:border-accent/50 transition-all duration-300"
+              >
+                <div className="h-36 bg-border/30 relative overflow-hidden">
+                  {item.image ? (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                      sizes="(max-width: 640px) 100vw, 50vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Utensils size={28} strokeWidth={1.2} className="text-muted/30" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <h3 className="font-bold text-foreground text-sm leading-snug">{item.name}</h3>
+                    {item.price && (
+                      <span className="text-sm text-accent font-medium shrink-0 tabular-nums">{item.price}</span>
+                    )}
+                  </div>
+                  {item.description && (
+                    <p className="text-xs text-muted leading-relaxed">{item.description}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <MenuCategorySection id="food"  label="FOOD"  title="フード"   sections={foodSections}  />
+      <MenuCategorySection id="drink" label="DRINK" title="ドリンク" sections={drinkSections} />
+
+      <section className="py-16 px-4 bg-card-bg border-t border-border">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-xs tracking-[0.4em] text-accent/80 mb-3">PDF</p>
+          <h2 className="text-xl font-bold text-foreground mb-3">全メニューを見る</h2>
+          <p className="text-sm text-muted mb-8">
+            全品目・価格を掲載したPDFメニューをご用意しています。
+          </p>
+          <button
+            disabled
+            className="inline-block px-10 py-3 border border-border text-muted rounded-sm text-sm tracking-wider cursor-not-allowed"
+            title="準備中"
+          >
+            全メニューPDFを見る（準備中）
+          </button>
+          <p className="text-xs text-muted/60 mt-4">
+            ※ 現在準備中です。しばらくお待ちください。
+          </p>
+        </div>
+      </section>
+
+    </div>
+  );
+}
