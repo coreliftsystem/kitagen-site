@@ -5,6 +5,9 @@ import LogoutButton from "./_components/LogoutButton";
 
 export const metadata: Metadata = {
   title: "管理画面 | きたげん",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function AdminLayout({

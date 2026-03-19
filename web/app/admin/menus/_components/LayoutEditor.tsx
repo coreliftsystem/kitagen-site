@@ -862,6 +862,7 @@ export default function LayoutEditor({ items }: Props) {
                 {/* ページコンテンツ（固定高さ・内部スクロール） */}
                 <div className="overflow-y-auto h-[680px]">
                   <DndContext
+                    id="layout-editor-dnd"
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     onDragStart={handleDragStart}
