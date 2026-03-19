@@ -14,6 +14,9 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   title: "きたげん｜居酒屋",
   description: "落ち着いて飲める、ちゃんとした居酒屋。きたげんの公式サイトです。",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 function Header() {
