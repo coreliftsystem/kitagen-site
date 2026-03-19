@@ -1,6 +1,5 @@
 ﻿import Link from "next/link";
-import Image from "next/image";
-import { UtensilsCrossed, MapPin, ClipboardList, ChefHat, Wine, Lamp, ShoppingBag, Utensils } from "lucide-react";
+import { UtensilsCrossed, MapPin, ClipboardList, ChefHat, Wine, Lamp, ShoppingBag } from "lucide-react";
 import { getMenusForTop } from "./lib/menus";
 import { getAnnouncements } from "./lib/announcements";
 import ParallaxHero from "./components/ParallaxHero";
@@ -200,61 +199,6 @@ export default async function Home() {
         </section>
       )}
 
-      {/* ── おすすめメニュー ──────────────────────────────── */}
-      <section className="py-24 px-4 bg-card-bg">
-        <div className="max-w-4xl mx-auto">
-          <ScrollReveal>
-            <div className="text-center mb-16">
-              <p className="text-xs tracking-[0.4em] text-accent mb-3">MENU</p>
-              <h2 className="text-2xl font-bold">おすすめメニュー</h2>
-              <div className="flex items-center justify-center gap-3 mt-5">
-                <div className="w-8 h-px bg-accent/60" />
-                <div className="w-1 h-1 rounded-full bg-accent" />
-                <div className="w-8 h-px bg-accent/60" />
-              </div>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {topItems.slice(0, 3).map((item, i) => (
-              <ScrollReveal key={item.id} delay={i * 150}>
-                <div className="card-lift bg-background rounded-lg overflow-hidden border border-border group">
-                  <div className="h-48 bg-card-bg relative overflow-hidden">
-                    {item.image ? (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Utensils size={28} strokeWidth={1.2} className="text-muted/30" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-bold mb-1">{item.name}</h3>
-                    <p className="text-sm text-muted mt-1">{item.description}</p>
-                  </div>
-                </div>
-              </ScrollReveal>
-            ))}
-          </div>
-
-          <ScrollReveal>
-            <div className="text-center mt-12">
-              <Link
-                href="/menu"
-                className="btn-lift inline-block px-10 py-3 border border-accent text-accent rounded-sm hover:bg-accent hover:text-background transition-colors text-sm tracking-[0.2em]"
-              >
-                メニューをもっと見る
-              </Link>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
 
       {/* ── 初めての方へ ──────────────────────────────────── */}
       <section className="py-24 px-4">
