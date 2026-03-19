@@ -12,7 +12,7 @@ const notoSansJP = Noto_Sans_JP({
 });
 
 const SITE_URL = "https://kitagen-izakaya.com";
-const OG_IMAGE = "/og.jpg";
+const OG_IMAGE = "/og.png";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
