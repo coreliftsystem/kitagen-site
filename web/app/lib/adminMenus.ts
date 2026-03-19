@@ -3,7 +3,7 @@
 // 管理画面用 メニュー取得データ層（Server Component から呼ぶ）
 // 書き込み操作は app/admin/menus/actions.ts の Server Actions を使う
 
-const BASE_URL = process.env.MENU_API_BASE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
 const SHOP_ID  = "kitagen";
 
 // ── 型定義 ─────────────────────────────────────────────────
@@ -48,6 +48,10 @@ function mapItem(raw: Record<string, any>): AdminMenuItem {
 // ── 一覧取得 ───────────────────────────────────────────────
 
 export async function getAdminMenus(): Promise<AdminMenuItem[]> {
+  if (!BASE_URL) {
+    console.warn("[adminMenus] MENU_API_BASE_URL が未設定です");
+    return [];
+  }
   const url = `${BASE_URL}/api/admin/menus?shopId=${SHOP_ID}`;
   try {
     const res = await fetch(url, { cache: "no-store" });

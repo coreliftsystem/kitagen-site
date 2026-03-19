@@ -11,7 +11,7 @@ The main application code is in the `web/` directory. All development commands s
 ```bash
 cd web
 npm install
-npm run dev      # Start development server at http://localhost:3000
+npm run dev      # Start development server at http://localhost:3001
 npm run build    # Production build
 npm run lint     # Run ESLint
 ```

@@ -1,56 +1,49 @@
 // web/app/lib/menus.ts
-//
-// 口コミ案内サポートシステムの public API からメニューを取得するデータ層。
-// Next.js Server Component から呼び出す（client component からは呼ばない）。
-//
-// 環境変数：MENU_API_BASE_URL（.env.local に設定）
 
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
-const SHOP_ID  = "kitagen";
-
-// ── 型定義 ─────────────────────────────────────────────────────
+const SHOP_ID = "kitagen";
 
 export interface PublicMenuItem {
-  id:            string;
-  name:          string;
-  description:   string | undefined;
-  price:         string | undefined;    // 表示用文字列 "¥190" など
-  image:         string | null;
-  category_main: string;                // "food" | "drink"
-  category_sub:  string;                // カテゴリ見出し（例：揚げ物、串、生ビール）
-  sortOrder:     number;
+  id: string;
+  name: string;
+  description: string | undefined;
+  price: string | undefined;
+  image: string | null;
+  category_main: string;
+  category_sub: string;
+  sortOrder: number;
 }
 
-// ── APIレスポンス → フロント型 のフィールド変換 ────────────────
-//
-// API（MongoDB）側のフィールド名    フロント型のフィールド名
-//   category        →  category_main
-//   subCategory     →  category_sub
-//   imageUrl        →  image  （空文字 → null）
-//   basePrice       →  price  （数値 → "¥190" 形式の文字列）
+function mapApiItem(raw: Record<string, unknown>): PublicMenuItem {
+  const record = raw as {
+    id?: string;
+    _id?: string;
+    name?: string;
+    description?: string;
+    basePrice?: number | string;
+    imageUrl?: string;
+    category?: string;
+    subCategory?: string;
+    sortOrder?: number | string;
+  };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapApiItem(raw: Record<string, any>): PublicMenuItem {
-  const basePrice = raw.basePrice;
-  const imageUrl  = raw.imageUrl;
+  const basePrice = record.basePrice;
+  const imageUrl = record.imageUrl;
 
   return {
-    id:            String(raw.id ?? ""),
-    name:          String(raw.name ?? ""),
-    description:   raw.description ? String(raw.description) : undefined,
-    price:         basePrice != null && basePrice !== ""
-                     ? `¥${Number(basePrice).toLocaleString("ja-JP")}〜`
-                     : undefined,
-    image:         imageUrl && String(imageUrl).trim() !== ""
-                     ? String(imageUrl)
-                     : null,
-    category_main: String(raw.category    ?? ""),
-    category_sub:  String(raw.subCategory ?? ""),
-    sortOrder:     Number(raw.sortOrder   ?? 0),
+    id: String(record.id ?? record._id ?? ""),
+    name: String(record.name ?? ""),
+    description: record.description ? String(record.description) : undefined,
+    price:
+      basePrice != null && basePrice !== ""
+        ? `¥${Number(basePrice).toLocaleString("ja-JP")}〜`
+        : undefined,
+    image: imageUrl && String(imageUrl).trim() !== "" ? String(imageUrl) : null,
+    category_main: String(record.category ?? ""),
+    category_sub: String(record.subCategory ?? ""),
+    sortOrder: Number(record.sortOrder ?? 0),
   };
 }
-
-// ── API 取得（内部） ───────────────────────────────────────────
 
 async function fetchMenus(
   display: "top" | "menu" | "takeout",
@@ -66,36 +59,31 @@ async function fetchMenus(
     const res = await fetch(url, { next: { revalidate: 300 } });
 
     if (!res.ok) {
-      console.error(`[menus] fetch failed: display=${display} status=${res.status}`);
+      console.error(
+        `[menus] fetch failed: display=${display} status=${res.status}`,
+      );
       return [];
     }
 
     const data = await res.json();
-    return (data.items ?? []).map(mapApiItem);
+
+    const items = Array.isArray(data)
+      ? data
+      : Array.isArray((data as { items?: unknown[] }).items)
+        ? (data as { items: unknown[] }).items
+        : [];
+
+    return items.map((item) => mapApiItem(item as Record<string, unknown>));
   } catch (e) {
     console.error(`[menus] fetch error: display=${display}`, e);
     return [];
   }
 }
 
-// ── 公開 API ───────────────────────────────────────────────────
-
-/** トップページ用（showOnTop: true） */
-export const getMenusForTop      = () => fetchMenus("top");
-
-/** メニューページ用（showOnMenuPage: true） */
+export const getMenusForTop = () => fetchMenus("top");
 export const getMenusForMenuPage = () => fetchMenus("menu");
+export const getMenusForTakeout = () => fetchMenus("takeout");
 
-/** テイクアウトページ用（showOnTakeout: true） */
-export const getMenusForTakeout  = () => fetchMenus("takeout");
-
-// ── ユーティリティ ─────────────────────────────────────────────
-
-/**
- * items を category_sub でグループ化して返す。
- * API から sortOrder 順で返ってきた items の挿入順が
- * そのままカテゴリの表示順になる（Map は挿入順を保持する）。
- */
 export function groupByCategorySub(
   items: PublicMenuItem[],
 ): { heading: string; items: PublicMenuItem[] }[] {

@@ -3,7 +3,7 @@
 // 管理画面用 お知らせ取得データ層（Server Component から呼ぶ）
 // 書き込み操作は app/admin/news/actions.ts の Server Actions を使う
 
-const BASE_URL = process.env.MENU_API_BASE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
 
 // ── 型定義 ─────────────────────────────────────────────────
 
@@ -36,6 +36,10 @@ export function isEffectivelyPublished(item: AdminAnnouncement): boolean {
 // ── 一覧取得 ───────────────────────────────────────────────
 
 export async function getAdminAnnouncements(): Promise<AdminAnnouncement[]> {
+  if (!BASE_URL) {
+    console.warn("[adminAnnouncements] MENU_API_BASE_URL が未設定です");
+    return [];
+  }
   const url = `${BASE_URL}/api/admin/announcements`;
   try {
     const res = await fetch(url, { cache: "no-store" });
@@ -56,6 +60,10 @@ export async function getAdminAnnouncements(): Promise<AdminAnnouncement[]> {
 export async function getAdminAnnouncement(
   id: string,
 ): Promise<AdminAnnouncement | null> {
+  if (!BASE_URL) {
+    console.warn("[adminAnnouncements] MENU_API_BASE_URL が未設定です");
+    return null;
+  }
   const url = `${BASE_URL}/api/admin/announcements/${id}`;
   try {
     const res = await fetch(url, { cache: "no-store" });
