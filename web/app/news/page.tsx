@@ -14,7 +14,7 @@ export default async function NewsPage() {
     <div className="min-h-screen pt-16">
 
       {/* ── ページヘッダー ───────────────────────────────── */}
-      <section className="bg-card-bg py-16 px-4 text-center">
+      <section className="section-warm py-16 px-4 text-center">
         <p className="text-[10px] tracking-[0.45em] text-accent/80 mb-2">NEWS</p>
         <h1 className="text-3xl font-bold">お知らせ</h1>
         <div className="flex items-center justify-center gap-3 mt-4">
@@ -26,7 +26,7 @@ export default async function NewsPage() {
       </section>
 
       {/* ── お知らせ一覧 ────────────────────────────────── */}
-      <section className="py-12 px-4">
+      <section className="py-12 px-4 section-light">
         <div className="max-w-2xl mx-auto">
 
           {items.length === 0 ? (

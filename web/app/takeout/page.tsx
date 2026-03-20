@@ -16,7 +16,7 @@ export default async function TakeoutPage() {
     <div className="min-h-screen pt-16">
 
       {/* ── ページヘッダー ───────────────────────────────── */}
-      <section className="bg-card-bg py-16 px-4 text-center">
+      <section className="section-warm py-16 px-4 text-center">
         <p className="text-[10px] tracking-[0.45em] text-accent/80 mb-2">
           TAKEOUT
         </p>
@@ -32,7 +32,7 @@ export default async function TakeoutPage() {
       </section>
 
       {/* ── 説明 ─────────────────────────────────────────── */}
-      <section className="py-14 px-4">
+      <section className="py-14 px-4 section-light">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-muted leading-loose">
             きたげんの人気メニューをご自宅でもお楽しみいただけます。<br />
@@ -42,7 +42,7 @@ export default async function TakeoutPage() {
       </section>
 
       {/* ── テイクアウトメニュー ──────────────────────────── */}
-      <section className="py-14 px-4 bg-card-bg">
+      <section className="py-14 px-4 section-warm">
         <div className="max-w-2xl mx-auto">
 
           <div className="flex items-center gap-3 mb-8">
@@ -87,7 +87,7 @@ export default async function TakeoutPage() {
       </section>
 
       {/* ── 全メニューPDF ────────────────────────────────── */}
-      <section className="py-16 px-4 bg-card-bg border-t border-border">
+      <section className="py-16 px-4 section-warm border-t border-border">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs tracking-[0.4em] text-accent/80 mb-3">PDF</p>
           <h2 className="text-xl font-bold text-foreground mb-3">全メニューを見る</h2>
@@ -109,7 +109,7 @@ export default async function TakeoutPage() {
       </section>
 
             {/* ── ご注文方法 ───────────────────────────────────── */}
-      <section className="py-14 px-4">
+      <section className="py-14 px-4 section-light">
         <div className="max-w-2xl mx-auto">
 
           <div className="flex items-center gap-3 mb-8">

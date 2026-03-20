@@ -78,7 +78,7 @@ function MenuItemRow({
 }
 
 // フード・ドリンク共通のカテゴリセクション
-// セクション背景: bg-card-bg　カード背景: bg-background　で統一
+// セクション背景: section-warm　カード背景: bg-background　で統一
 function MenuCategorySection({
   id,
   label,
@@ -91,7 +91,7 @@ function MenuCategorySection({
   sections: CategorySection[];
 }) {
   return (
-    <section id={id} className="py-16 px-4 bg-card-bg scroll-mt-28">
+    <section id={id} className="py-16 px-4 section-warm scroll-mt-28">
       <div className="max-w-3xl mx-auto">
         <SectionHeading label={label} title={title} />
         <div className="space-y-10">
@@ -127,9 +127,9 @@ export default async function MenuPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
 
-      <section className="bg-card-bg border-b border-border py-16 px-4 text-center">
+      <section className="section-warm border-b border-border py-16 px-4 text-center">
         <p className="text-[10px] tracking-[0.5em] text-accent/80 mb-3">MENU</p>
         <h1 className="text-4xl font-bold text-foreground mb-4">メニュー</h1>
         <div className="flex items-center justify-center gap-4">
@@ -160,7 +160,7 @@ export default async function MenuPage() {
         </div>
       </div>
 
-      <section id="popular" className="py-16 px-4 scroll-mt-28">
+      <section id="popular" className="py-16 px-4 scroll-mt-28 section-light">
         <div className="max-w-3xl mx-auto">
           <SectionHeading label="POPULAR" title="人気メニュー" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -204,7 +204,7 @@ export default async function MenuPage() {
       <MenuCategorySection id="food"  label="FOOD"  title="フード"   sections={foodSections}  />
       <MenuCategorySection id="drink" label="DRINK" title="ドリンク" sections={drinkSections} />
 
-      <section className="py-16 px-4 bg-card-bg border-t border-border">
+      <section className="py-16 px-4 section-warm border-t border-border">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-xs tracking-[0.4em] text-accent/80 mb-3">PDF</p>
           <h2 className="text-xl font-bold text-foreground mb-3">全メニューを見る</h2>

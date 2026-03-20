@@ -1,14 +1,5 @@
 import type { Metadata } from "next";
-import {
-  Clock,
-  Armchair,
-  CreditCard,
-  Phone,
-  MapPin,
-  ExternalLink,
-  AtSign,
-  type LucideIcon,
-} from "lucide-react";
+import { MapPin, ExternalLink } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "店舗情報｜きたげん",
@@ -43,7 +34,7 @@ const SEATS = {
   parking:  "なし",
 };
 
-const PAYMENT = ["現金", "クレジットカード", "PayPay"];
+const PAYMENT = ["現金", "クレジットカード"];
 
 const PHONE = "070-1744-2839";
 
@@ -59,52 +50,12 @@ const INSTAGRAM_URL = "https://www.instagram.com/izakaya_kitagen";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// ── 共通カードレイアウト ──────────────────────────────
-function InfoCard({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: LucideIcon;
-  title: string;
-  children: React.ReactNode;
-}) {
+// セクション見出しの共通パターン
+function SectionLabel({ en, ja }: { en: string; ja: string }) {
   return (
-    <div className="rounded-xl border border-border bg-background p-6">
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-9 h-9 rounded-lg bg-card-bg border border-border/60 flex items-center justify-center shrink-0">
-          <Icon size={17} strokeWidth={1.5} className="text-accent" />
-        </div>
-        <h2 className="font-bold text-base">{title}</h2>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// ── 営業時間内の時間ブロック ──────────────────────────
-function HourBlock({
-  days,
-  sessions,
-}: {
-  days: string;
-  sessions: { label: string; open: string; close: string; lo: string }[];
-}) {
-  return (
-    <div>
-      <p className="text-[11px] text-muted tracking-wider mb-2">{days}</p>
-      {sessions.map((s) => (
-        <div
-          key={s.label}
-          className="flex items-baseline justify-between text-sm border-b border-border/40 pb-2 mb-2 last:border-0 last:pb-0 last:mb-0"
-        >
-          <span className="text-muted shrink-0 mr-4 w-14">{s.label}</span>
-          <div className="text-right">
-            <span className="font-medium tabular-nums">{s.open}〜{s.close}</span>
-            <span className="text-xs text-muted ml-2">L.O. {s.lo}</span>
-          </div>
-        </div>
-      ))}
+    <div className="mb-10">
+      <p className="text-[9px] tracking-[0.65em] text-accent/60 mb-2">{en}</p>
+      <h2 className="text-2xl font-bold">{ja}</h2>
     </div>
   );
 }
@@ -116,7 +67,7 @@ export default function InfoPage() {
     <div className="min-h-screen pt-16">
 
       {/* ── ページヘッダー ───────────────────────────────── */}
-      <section className="bg-card-bg py-16 px-4 text-center">
+      <section className="section-warm py-16 px-4 text-center border-b border-foreground/20">
         <p className="text-[10px] tracking-[0.45em] text-accent/80 mb-2">STORE INFO</p>
         <h1 className="text-3xl font-bold">店舗情報</h1>
         <div className="flex items-center justify-center gap-3 mt-4">
@@ -127,152 +78,206 @@ export default function InfoPage() {
         <p className="text-sm text-muted mt-4">営業時間・アクセス・各種ご案内</p>
       </section>
 
-      {/* ── 店舗情報カード群 ─────────────────────────────── */}
-      <section className="py-12 px-4">
-        <div className="max-w-4xl mx-auto space-y-10">
+      {/* ── メインコンテンツ ─────────────────────────────── */}
+      <div className="section-light">
+      <div className="max-w-xl mx-auto px-6 pb-24">
 
-          {/* ── カードグリッド ─ 2列（スマホは1列） ─────── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* ════════════════════════════════════════════════
+            ① 営業時間
+        ════════════════════════════════════════════════ */}
+        <section className="pt-16 pb-14">
+          <SectionLabel en="HOURS" ja="営業時間" />
 
-            {/* 1. 営業時間 */}
-            <InfoCard icon={Clock} title="営業時間">
-              <div className="space-y-5">
-                <HourBlock days={HOURS.regular.days} sessions={HOURS.regular.sessions} />
-                <HourBlock days={HOURS.holiday.days} sessions={HOURS.holiday.sessions} />
-                <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                  <span className="text-xs text-muted">定休日</span>
-                  <span className="text-sm font-semibold text-accent">{HOURS.closed}</span>
+          <div className="border-t border-dashed border-foreground/20">
+
+            {/* 月〜土 — グループヘッダー行 */}
+            <div className="py-3 border-b border-dashed border-foreground/20">
+              <span className="text-xs font-semibold text-foreground">{HOURS.regular.days}</span>
+            </div>
+            {HOURS.regular.sessions.map((s) => (
+              <div
+                key={s.label}
+                className="grid grid-cols-[5rem_1fr] items-baseline gap-x-6 py-4 border-b border-dashed border-foreground/20"
+              >
+                <span className="text-xs text-muted">{s.label}</span>
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-sm font-medium tabular-nums">{s.open}〜{s.close}</span>
+                  <span className="text-xs text-muted tabular-nums">L.O.&nbsp;{s.lo}</span>
                 </div>
               </div>
-            </InfoCard>
+            ))}
 
-            {/* 2. アクセス（住所・最寄り・駐車場 + 地図） */}
-            <div className="rounded-xl border border-border bg-background overflow-hidden">
-              {/* ヘッダー + テキスト情報 */}
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-9 h-9 rounded-lg bg-card-bg border border-border/60 flex items-center justify-center shrink-0">
-                    <MapPin size={17} strokeWidth={1.5} className="text-accent" />
-                  </div>
-                  <h2 className="font-bold text-base">アクセス</h2>
+            {/* 祝日 — グループヘッダー行 */}
+            <div className="py-3 border-b border-dashed border-foreground/20">
+              <span className="text-xs font-semibold text-foreground">{HOURS.holiday.days}</span>
+            </div>
+            {HOURS.holiday.sessions.map((s) => (
+              <div
+                key={s.label}
+                className="grid grid-cols-[5rem_1fr] items-baseline gap-x-6 py-4 border-b border-dashed border-foreground/20"
+              >
+                <span className="text-xs text-muted">{s.label}</span>
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-sm font-medium tabular-nums">{s.open}〜{s.close}</span>
+                  <span className="text-xs text-muted tabular-nums">L.O.&nbsp;{s.lo}</span>
                 </div>
-                <dl className="text-sm space-y-3">
-                  {[
-                    { label: "住所",     value: ACCESS.address, pre: true  },
-                    { label: "最寄り駅", value: ACCESS.nearest, pre: false },
-                    { label: "駐車場",   value: ACCESS.parking, pre: false },
-                  ].map(({ label, value, pre }, i, arr) => (
-                    <div
-                      key={label}
-                      className={`flex flex-col gap-1 ${i < arr.length - 1 ? "border-b border-border/40 pb-3" : ""}`}
-                    >
-                      <dt className="text-[11px] text-muted tracking-wider">{label}</dt>
-                      <dd className={`leading-relaxed ${pre ? "whitespace-pre-line font-medium" : ""}`}>
-                        {value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
               </div>
-              {/* 地図（カード内・余白なし） */}
-              <div className="border-t border-border/40">
-                <iframe
-                  src={ACCESS.mapEmbedUrl}
-                  className="w-full h-[200px] block"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="きたげん アクセスマップ"
-                />
-              </div>
-              {/* Googleマップリンク */}
-              <div className="px-6 py-4 border-t border-border/40">
-                <a
-                  href={ACCESS.mapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-dark transition-colors duration-200"
-                >
-                  <MapPin size={13} strokeWidth={1.5} />
-                  Googleマップで開く
-                  <ExternalLink size={11} strokeWidth={1.5} className="opacity-60" />
-                </a>
-              </div>
+            ))}
+
+            {/* 定休日 */}
+            <div className="grid grid-cols-[5rem_1fr] items-baseline gap-x-6 py-4 border-b border-dashed border-foreground/20">
+              <span className="text-xs text-muted">定休日</span>
+              <span className="text-sm font-bold text-accent">{HOURS.closed}</span>
             </div>
 
-            {/* 3. 席・設備 */}
-            <InfoCard icon={Armchair} title="席・設備">
-              <dl className="text-sm space-y-3">
-                {[
-                  { label: "席数",   value: SEATS.count    },
-                  { label: "設備",   value: SEATS.features },
-                  { label: "喫煙",   value: SEATS.smoking  },
-                  { label: "駐車場", value: SEATS.parking  },
-                ].map(({ label, value }, i, arr) => (
-                  <div
-                    key={label}
-                    className={`flex gap-4 ${i < arr.length - 1 ? "border-b border-border/40 pb-3" : ""}`}
-                  >
-                    <dt className="text-muted shrink-0 w-14">{label}</dt>
-                    <dd className="space-y-0.5 leading-relaxed">
-                      {Array.isArray(value) ? value.map((v) => <p key={v}>{v}</p>) : value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </InfoCard>
+          </div>
+        </section>
 
-            {/* 4. お支払い */}
-            <InfoCard icon={CreditCard} title="お支払い">
-              <div className="flex flex-wrap gap-2">
-                {PAYMENT.map((p) => (
-                  <span key={p} className="px-3 py-1.5 bg-card-bg border border-border rounded-lg text-sm">
-                    {p}
-                  </span>
-                ))}
+        <div className="border-t-2 border-dashed border-foreground/30 -mx-6" />
+
+        {/* ════════════════════════════════════════════════
+            ② アクセス
+        ════════════════════════════════════════════════ */}
+        <section className="pt-16 pb-14">
+          <SectionLabel en="ACCESS" ja="アクセス" />
+
+          <dl className="border-t border-dashed border-foreground/20">
+            {[
+              { label: "住所",     value: ACCESS.address, pre: true  },
+              { label: "最寄り駅", value: ACCESS.nearest, pre: false },
+              { label: "駐車場",   value: ACCESS.parking, pre: false },
+            ].map(({ label, value, pre }) => (
+              <div
+                key={label}
+                className="grid grid-cols-[5rem_1fr] items-baseline gap-x-6 py-4 border-b border-dashed border-foreground/20"
+              >
+                <dt className="text-xs text-muted">{label}</dt>
+                <dd className={`text-sm leading-relaxed ${pre ? "whitespace-pre-line font-medium" : ""}`}>
+                  {value}
+                </dd>
               </div>
-            </InfoCard>
+            ))}
+          </dl>
 
-            {/* 5. ご予約 */}
-            <InfoCard icon={Phone} title="ご予約">
-              <div className="space-y-4 text-sm">
-                <p className="text-muted leading-relaxed">お電話でご予約いただけます。</p>
-                <div className="border-t border-border/40 pt-4">
-                  <a
-                    href={`tel:${PHONE}`}
-                    className="block text-xl font-bold tracking-wider text-foreground hover:text-accent transition-colors duration-200 tabular-nums"
-                  >
-                    {PHONE}
-                  </a>
-                  <p className="text-xs text-muted mt-1">タップで発信できます</p>
-                </div>
-              </div>
-            </InfoCard>
-
-            {/* 6. 公式アカウント */}
-            <InfoCard icon={AtSign} title="公式アカウント">
-              <div className="space-y-3 text-sm">
-                <p className="text-muted leading-relaxed">
-                  料理や店内の様子をInstagramで発信しています。
-                </p>
-                <a
-                  href={INSTAGRAM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-accent hover:text-accent-dark transition-colors duration-200"
-                >
-                  @izakaya_kitagen
-                  <ExternalLink size={12} strokeWidth={1.5} className="opacity-60" />
-                </a>
-              </div>
-            </InfoCard>
-
+          {/* 地図 — コンテナ幅を突き抜けて全幅に */}
+          <div className="mt-10 -mx-6">
+            <iframe
+              src={ACCESS.mapEmbedUrl}
+              className="w-full h-[220px] block"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="きたげん アクセスマップ"
+            />
           </div>
 
-        </div>
-      </section>
+          <div className="mt-5">
+            <a
+              href={ACCESS.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent-dark transition-colors duration-200"
+            >
+              <MapPin size={12} strokeWidth={1.5} />
+              Googleマップで開く
+              <ExternalLink size={10} strokeWidth={1.5} className="opacity-60" />
+            </a>
+          </div>
+        </section>
 
+        <div className="border-t-2 border-dashed border-foreground/30 -mx-6" />
+
+        {/* ════════════════════════════════════════════════
+            ③ 席・設備
+        ════════════════════════════════════════════════ */}
+        <section className="pt-16 pb-14">
+          <SectionLabel en="SEATS" ja="席・設備" />
+
+          <dl className="border-t border-dashed border-foreground/20">
+            {[
+              { label: "席数",   value: SEATS.count    },
+              { label: "設備",   value: SEATS.features },
+              { label: "喫煙",   value: SEATS.smoking  },
+              { label: "駐車場", value: SEATS.parking  },
+            ].map(({ label, value }) => (
+              <div
+                key={label}
+                className="grid grid-cols-[5rem_1fr] items-baseline gap-x-6 py-4 border-b border-dashed border-foreground/20"
+              >
+                <dt className="text-xs text-muted">{label}</dt>
+                <dd className="text-sm leading-relaxed space-y-0.5">
+                  {Array.isArray(value)
+                    ? value.map((v) => <p key={v}>{v}</p>)
+                    : value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <div className="border-t-2 border-dashed border-foreground/30 -mx-6" />
+
+        {/* ════════════════════════════════════════════════
+            ④ お支払い
+        ════════════════════════════════════════════════ */}
+        <section className="pt-16 pb-14">
+          <SectionLabel en="PAYMENT" ja="お支払い" />
+
+          <div className="border-t border-dashed border-foreground/20">
+            <div className="grid grid-cols-[5rem_1fr] items-baseline gap-x-6 py-4 border-b border-dashed border-foreground/20">
+              <span className="text-xs text-muted">支払い</span>
+              <span className="text-sm">{PAYMENT.join("・")}</span>
+            </div>
+          </div>
+        </section>
+
+        <div className="border-t-2 border-dashed border-foreground/30 -mx-6" />
+
+        {/* ════════════════════════════════════════════════
+            ⑤ ご予約
+        ════════════════════════════════════════════════ */}
+        <section className="pt-16 pb-14">
+          <SectionLabel en="RESERVATION" ja="ご予約" />
+
+          <p className="text-sm text-muted mb-8">
+            お電話でご予約いただけます。
+          </p>
+
+          <a
+            href={`tel:${PHONE}`}
+            className="block text-[2rem] font-bold tracking-widest text-foreground hover:text-accent transition-colors duration-200 tabular-nums"
+          >
+            {PHONE}
+          </a>
+          <p className="text-xs text-muted mt-2">タップで発信できます</p>
+        </section>
+
+        <div className="border-t-2 border-dashed border-foreground/30 -mx-6" />
+
+        {/* ════════════════════════════════════════════════
+            ⑥ 公式アカウント
+        ════════════════════════════════════════════════ */}
+        <section className="pt-16">
+          <SectionLabel en="SOCIAL" ja="公式アカウント" />
+
+          <p className="text-sm text-muted mb-6">
+            料理や店内の様子をInstagramで発信しています。
+          </p>
+
+          <a
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-dark transition-colors duration-200"
+          >
+            @izakaya_kitagen
+            <ExternalLink size={12} strokeWidth={1.5} className="opacity-60" />
+          </a>
+        </section>
+
+      </div>
+      </div>
     </div>
   );
 }

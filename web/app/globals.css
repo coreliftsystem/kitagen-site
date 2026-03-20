@@ -9,13 +9,13 @@
    ─ カードが浮いて見えるコントラスト構成
 ────────────────────────────────────────────────────────── */
 :root {
-  --background: #f5eed8;   /* 生成り・和紙色（カード面・ページ基調の明るい面） */
-  --foreground: #1a1508;   /* 漆墨のような深いウォームブラウン */
-  --accent:     #9e6424;   /* 古木・醤油がかったブラウンアンバー */
-  --accent-dark:#835319;   /* さらに深い焦げ木色 */
-  --muted:      #78684e;   /* 枯れ草・枯茶のウォームトープ */
-  --card-bg:    #e8dfc8;   /* 麻・畳色のセクション背景（カードより少し濃い） */
-  --border:     #c8b88c;   /* 竹・金茶のボーダー */
+  --background: #FBF8F2;   /* 和紙白：温かみのあるオフホワイト */
+  --foreground: #2F241C;   /* 漆褐：深いウォームブラウン（見出し） */
+  --accent:     #C9782A;   /* 焼橙：ロゴに合うオレンジブラウン */
+  --accent-dark:#A85E1A;   /* 焦橙：アクセントの深み色 */
+  --muted:      #5E5145;   /* 枯茶：本文・サブテキスト */
+  --card-bg:    #F3EDE2;   /* 生成り：セクション背景 */
+  --border:     #E5D9C4;   /* 薄竹：ボーダー・区切り */
 }
 
 @theme inline {
@@ -31,8 +31,15 @@
 
 body {
   background-color: var(--background);
-  /* 和紙のような極微細なテクスチャ（ほんのり・見えるか見えないか程度） */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  /* 和紙テクスチャ（サイト全体のベース）
+     section-* クラスと同じ2層構成に統一。
+     section クラスが当たっていない素の背景エリアでも和紙感が出る。 */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23f)' opacity='0.10'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='350' height='350'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.15' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='350' height='350' filter='url(%23g)' opacity='0.09'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px, 350px 350px;
+  background-blend-mode: multiply, multiply;
   color:       var(--foreground);
   font-family: "Noto Sans JP", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -127,6 +134,46 @@ html {
   transform: scale(0.98);
   box-shadow: 0 4px 12px rgba(90, 65, 30, 0.08);
   transition-duration: 0.08s;
+}
+
+/* ─── 公開画面用 セクション背景システム ────────────────────
+   3段階の「微差」で和紙のリズムを作る。管理画面では使用しない。
+
+   body           #FBF8F2 — 単層テクスチャ（ページ基調）
+   .section-light #F7F3EB — ほんのり温かみを加えた明るさ + 2層テクスチャ
+   .section-warm  #F3EDE2 — 生成り（中間・温かさの基調）    + 2層テクスチャ
+   .section-deep  #EBE1D3 — 深麻（写真を囲む・締め用の深み）+ 2層テクスチャ
+
+   各段差は4〜15 RGB unit。やりすぎず、スクロールで自然にリズムが出る調整値。
+   Tailwindの bg-* と組み合わせる必要はない。
+──────────────────────────────────────────────────────────── */
+
+/* 共通テクスチャ（各クラスが同じ2層を内包する） */
+.section-light,
+.section-warm,
+.section-deep {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23f)' opacity='0.10'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='350' height='350'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.15' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='350' height='350' filter='url(%23g)' opacity='0.09'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px, 350px 350px;
+  background-blend-mode: multiply, multiply;
+}
+
+/* 色の差：background-color だけを変える（テクスチャは共通） */
+.section-light { background-color: #F7F3EB; } /* body より 4〜7 unit 深み → News が body から分離 */
+.section-warm  { background-color: #F3EDE2; } /* section-light より 4〜9 unit 深み → 温かさの中間 */
+.section-deep  { background-color: #EBE1D3; } /* section-warm より 8〜15 unit 深み → Gallery・写真映え */
+
+/* ─── 後方互換 ─── */
+/* washi-bg は他ページで使用中のため残す。新規は section-* を使うこと。 */
+.washi-bg {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23f)' opacity='0.10'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='350' height='350'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.03 0.15' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='350' height='350' filter='url(%23g)' opacity='0.09'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px, 350px 350px;
+  background-blend-mode: multiply, multiply;
 }
 
 /* ─── Scrollbar hide (横スクロール用) ─── */

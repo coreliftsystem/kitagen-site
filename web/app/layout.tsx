@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP } from "next/font/google";
 import Link from "next/link";
-import MobileNav from "./components/MobileNav";
+import Header from "./components/Header";
 import ClientLayout from "./components/ClientLayout";
 import "./globals.css";
 
@@ -47,59 +47,11 @@ export const metadata: Metadata = {
       "桃谷の居酒屋「きたげん」。こだわりの料理とお酒を楽しめるお店です。",
     images: [OG_IMAGE],
   },
+  alternates: {
+    canonical: SITE_URL,
+  },
 };
 
-function Header() {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b border-border">
-      <nav className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex flex-col items-start leading-tight hover:opacity-70 transition-opacity duration-200"
-        >
-          <span className="text-sm font-bold text-accent tracking-[0.2em]">
-            きたげん
-          </span>
-          <span className="text-[8px] tracking-[0.42em] text-muted font-normal mt-0.5">
-            IZAKAYA
-          </span>
-        </Link>
-
-        {/* Desktop nav */}
-        <ul className="hidden md:flex gap-6 text-sm">
-          <li>
-            <Link href="/" className="hover:text-accent transition-colors">
-              トップ
-            </Link>
-          </li>
-          <li>
-            <Link href="/menu" className="hover:text-accent transition-colors">
-              メニュー
-            </Link>
-          </li>
-          <li>
-            <Link href="/info" className="hover:text-accent transition-colors">
-              店舗情報
-            </Link>
-          </li>
-          <li>
-            <Link href="/news" className="hover:text-accent transition-colors">
-              お知らせ
-            </Link>
-          </li>
-          <li>
-            <Link href="/survey" className="hover:text-accent transition-colors">
-              アンケート
-            </Link>
-          </li>
-        </ul>
-
-        {/* Mobile hamburger */}
-        <MobileNav />
-      </nav>
-    </header>
-  );
-}
 
 function Footer() {
   const currentYear = new Date().getFullYear();

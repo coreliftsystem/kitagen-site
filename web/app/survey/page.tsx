@@ -13,7 +13,7 @@ export default function SurveyPage() {
     <div className="min-h-screen pt-16">
 
       {/* ── ページヘッダー ───────────────────────────────── */}
-      <section className="bg-card-bg py-16 px-4 text-center">
+      <section className="section-warm py-16 px-4 text-center">
         <p className="text-[10px] tracking-[0.45em] text-accent/80 mb-2">SURVEY</p>
         <h1 className="text-3xl font-bold">アンケート</h1>
         <div className="flex items-center justify-center gap-3 mt-4">
@@ -25,7 +25,7 @@ export default function SurveyPage() {
       </section>
 
       {/* ── メインコンテンツ ──────────────────────────────── */}
-      <section className="py-14 px-4">
+      <section className="py-14 px-4 section-light">
         <div className="max-w-lg mx-auto space-y-6">
 
           {/* ── ごあいさつカード ──────────────────────────── */}

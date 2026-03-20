@@ -3,10 +3,28 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
-export default function ParallaxHero() {
+interface Props {
+  /** SP用画像パス（縦長構図） */
+  srcSp: string;
+  /** PC用画像パス（横長構図）。省略時は srcSp を使用 */
+  srcPc?: string;
+  /** SP用 object-position（デフォルト: "center 40%"） */
+  positionSp?: string;
+  /** PC用 object-position（デフォルト: "center 40%"） */
+  positionPc?: string;
+}
+
+export default function ParallaxHero({
+  srcSp,
+  srcPc,
+  positionSp = "center 40%",
+  positionPc = "center 40%",
+}: Props) {
   const ref = useRef<HTMLDivElement>(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [spLoaded, setSpLoaded] = useState(false);
+  const [pcLoaded, setPcLoaded] = useState(false);
+  const [spError, setSpError] = useState(false);
+  const [pcError, setPcError] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,21 +47,37 @@ export default function ParallaxHero() {
           写真が未配置 / 読み込みエラーのときに表示される温かいグラデーション */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#2c2215] via-[#1e1a0e] to-[#181408]" />
 
-      {/* ── 店舗写真 (public/hero.jpg) ────────────────────
-          写真を配置するとフェードインして表示される */}
-      {!imageError && (
+      {/* ── SP用（md未満）：縦長構図 ─────────────────── */}
+      {!spError && (
         <Image
-          src="/beer.jpg"
+          src={srcSp}
           alt=""
           fill
-          className={`object-cover transition-opacity duration-700 ${
-            imageLoaded ? "opacity-100" : "opacity-0"
+          className={`object-cover md:hidden transition-opacity duration-700 ${
+            spLoaded ? "opacity-100" : "opacity-0"
           }`}
-          style={{ objectPosition: "center 30%" }}
+          style={{ objectPosition: positionSp }}
           priority
           sizes="100vw"
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setImageError(true)}
+          onLoad={() => setSpLoaded(true)}
+          onError={() => setSpError(true)}
+        />
+      )}
+
+      {/* ── PC用（md以上）：横長構図 ─────────────────── */}
+      {!pcError && (
+        <Image
+          src={srcPc ?? srcSp}
+          alt=""
+          fill
+          className={`object-cover hidden md:block transition-opacity duration-700 ${
+            pcLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ objectPosition: positionPc }}
+          priority
+          sizes="100vw"
+          onLoad={() => setPcLoaded(true)}
+          onError={() => setPcError(true)}
         />
       )}
     </div>
