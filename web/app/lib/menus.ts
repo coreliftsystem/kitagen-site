@@ -46,7 +46,7 @@ function mapApiItem(raw: Record<string, unknown>): PublicMenuItem {
 }
 
 async function fetchMenus(
-  display: "top" | "menu" | "takeout",
+  display: "top" | "menu" | "takeout" | "lunch" | "dinner",
 ): Promise<PublicMenuItem[]> {
   if (!BASE_URL) {
     console.warn("[menus] MENU_API_BASE_URL が未設定です");
@@ -56,7 +56,11 @@ async function fetchMenus(
   const url = `${BASE_URL}/api/public/menus?shopId=${SHOP_ID}&display=${display}`;
 
   try {
-    const res = await fetch(url, { next: { revalidate: 300 } });
+    const fetchOptions =
+      process.env.NODE_ENV === "development"
+        ? { cache: "no-store" as const }
+        : { next: { revalidate: 300 } };
+    const res = await fetch(url, fetchOptions);
 
     if (!res.ok) {
       console.error(
@@ -83,6 +87,8 @@ async function fetchMenus(
 export const getMenusForTop = () => fetchMenus("top");
 export const getMenusForMenuPage = () => fetchMenus("menu");
 export const getMenusForTakeout = () => fetchMenus("takeout");
+export const getMenusForLunch = () => fetchMenus("lunch");
+export const getMenusForDinner = () => fetchMenus("dinner");
 
 export function groupByCategorySub(
   items: PublicMenuItem[],

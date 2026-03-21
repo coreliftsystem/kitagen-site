@@ -5,12 +5,13 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 
 const navLinks = [
-  { href: "/",        ja: "トップ",      en: "Top"     },
-  { href: "/menu",    ja: "メニュー",    en: "Menu"    },
-  { href: "/info",    ja: "店舗情報",    en: "Info"    },
-  { href: "/takeout", ja: "テイクアウト", en: "Takeout" },
-  { href: "/news",    ja: "お知らせ",    en: "News"    },
-  { href: "/survey",  ja: "アンケート",  en: "Survey"  },
+  { href: "/",             ja: "トップ",      en: "Top"     },
+  { href: "/menu/lunch",   ja: "ランチ",      en: "Lunch"   },
+  { href: "/menu/dinner",  ja: "ディナー",    en: "Dinner"  },
+  { href: "/info",         ja: "店舗情報",    en: "Info"    },
+  { href: "/takeout",      ja: "テイクアウト", en: "Takeout" },
+  { href: "/news",         ja: "お知らせ",    en: "News"    },
+  { href: "/survey",       ja: "アンケート",  en: "Survey"  },
 ];
 
 export default function MobileNav() {

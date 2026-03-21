@@ -5,11 +5,12 @@ import Link from "next/link";
 import MobileNav from "./MobileNav";
 
 const NAV_LINKS = [
-  { href: "/",       label: "トップ"   },
-  { href: "/menu",   label: "メニュー" },
-  { href: "/info",   label: "店舗情報" },
-  { href: "/news",   label: "お知らせ" },
-  { href: "/survey", label: "アンケート" },
+  { href: "/",             label: "トップ"   },
+  { href: "/menu/lunch",   label: "ランチ"   },
+  { href: "/menu/dinner",  label: "ディナー" },
+  { href: "/info",         label: "店舗情報" },
+  { href: "/news",         label: "お知らせ" },
+  { href: "/survey",       label: "アンケート" },
 ];
 
 export default function Header() {

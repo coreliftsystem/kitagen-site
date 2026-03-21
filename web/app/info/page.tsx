@@ -246,7 +246,7 @@ export default function InfoPage() {
 
           <a
             href={`tel:${PHONE}`}
-            className="block text-[2rem] font-bold tracking-widest text-foreground hover:text-accent transition-colors duration-200 tabular-nums"
+            className="block text-2xl font-bold tracking-wider text-foreground hover:text-accent transition-colors duration-200 tabular-nums"
           >
             {PHONE}
           </a>

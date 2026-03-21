@@ -40,11 +40,10 @@ export default async function Home() {
     getAnnouncements(),
   ]);
   const photoItems = topItems.map((i) => ({ ...i, image: i.image ?? "" }));
-  const recentNews = announcements.slice(0, 3);
+  const recentNews = announcements.slice(0, 5);
 
   return (
     <div className="min-h-screen">
-
       {/* ── ① Hero ──────────────────────────────────────────── */}
       <section className="relative h-[55vh] md:h-auto md:min-h-[82vh] flex items-center justify-center overflow-hidden bg-foreground">
         <ParallaxHero
@@ -83,18 +82,24 @@ export default async function Home() {
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-
               {/* テキスト */}
               <div>
-                <p className="text-[10px] tracking-[0.5em] text-accent/80 mb-3">ABOUT</p>
+                <p className="text-[10px] tracking-[0.5em] text-accent/80 mb-3">
+                  ABOUT
+                </p>
                 <h2 className="text-2xl md:text-3xl font-bold leading-snug">
-                  ふらっと寄れる、<br />ちゃんとした居酒屋。
+                  ふらっと寄れる、
+                  <br />
+                  ちゃんとした居酒屋。
                 </h2>
                 <SectionDivider />
                 <p className="text-sm md:text-base text-muted leading-[2.1] md:leading-[2.2] mb-8">
-                  大阪・桃谷にある「きたげん」は、気軽に入れて、<br />
-                  料理もお酒もちゃんとおいしい居酒屋です。<br />
-                  一人でふらっと立ち寄っても、仲間とにぎやかに過ごしても、<br />
+                  大阪・桃谷にある「きたげん」は、気軽に入れて、
+                  <br />
+                  料理もお酒もちゃんとおいしい居酒屋です。
+                  <br />
+                  一人でふらっと立ち寄っても、仲間とにぎやかに過ごしても、
+                  <br />
                   自然と落ち着ける場所でありたいと思っています。
                 </p>
                 <Link
@@ -107,7 +112,6 @@ export default async function Home() {
 
               {/* 画像（public/shop.jpg を配置してください） */}
               <SplitImage src={SITE_IMAGES.about.shop} alt="きたげん店内" />
-
             </div>
           </ScrollReveal>
         </div>
@@ -118,7 +122,6 @@ export default async function Home() {
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-
               {/* 画像（スマホでは下に、PCでは左に） */}
               {/* public/food-main.jpg を配置してください */}
               <div className="order-2 md:order-1">
@@ -127,15 +130,22 @@ export default async function Home() {
 
               {/* テキスト（スマホでは上に、PCでは右に） */}
               <div className="order-1 md:order-2">
-                <p className="text-[10px] tracking-[0.5em] text-accent/80 mb-3">FOOD</p>
+                <p className="text-[10px] tracking-[0.5em] text-accent/80 mb-3">
+                  FOOD
+                </p>
                 <h2 className="text-2xl md:text-3xl font-bold leading-snug">
-                  手作りにこだわった、<br />うまい一品。
+                  手作りにこだわった、
+                  <br />
+                  うまい一品。
                 </h2>
                 <SectionDivider />
                 <p className="text-sm md:text-base text-muted leading-[2.1] md:leading-[2.2] mb-8">
-                  ふらっと来ても、ちゃんと満足できる。<br />
-                  そんな一品をご用意しています。<br className="hidden sm:block" />
-                  餃子やしゅうまい、唐揚げなど、<br />
+                  ふらっと来ても、ちゃんと満足できる。
+                  <br />
+                  そんな一品をご用意しています。
+                  <br className="hidden sm:block" />
+                  餃子やしゅうまい、唐揚げなど、
+                  <br />
                   お酒が進む味に仕上げています。
                 </p>
                 <Link
@@ -145,7 +155,6 @@ export default async function Home() {
                   メニューを見る →
                 </Link>
               </div>
-
             </div>
           </ScrollReveal>
         </div>
@@ -156,17 +165,24 @@ export default async function Home() {
         <div className="max-w-5xl mx-auto">
           <ScrollReveal>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-
               {/* テキスト */}
               <div>
-                <p className="text-[10px] tracking-[0.5em] text-accent/80 mb-3">SPACE</p>
+                <p className="text-[10px] tracking-[0.5em] text-accent/80 mb-3">
+                  SPACE
+                </p>
                 <h2 className="text-2xl md:text-3xl font-bold leading-snug">
-                  肩肘張らない、<br />居心地の良い空間。
+                  肩肘張らない、
+                  <br />
+                  居心地の良い空間。
                 </h2>
                 <SectionDivider />
                 <p className="text-sm md:text-base text-muted leading-[2.1] md:leading-[2.2] mb-8">
-                  気を張らずに過ごせる、<br className="sm:hidden" />ちょうどいい距離感の空間。<br />
-                  お一人様でもグループでも、気兼ねなくお過ごしください。<br />
+                  気を張らずに過ごせる、
+                  <br className="sm:hidden" />
+                  ちょうどいい距離感の空間。
+                  <br />
+                  お一人様でもグループでも、気兼ねなくお過ごしください。
+                  <br />
                   宴会や飲み会のご予約もお気軽にどうぞ。
                 </p>
                 <Link
@@ -178,8 +194,10 @@ export default async function Home() {
               </div>
 
               {/* 画像（public/counter.jpg を配置してください） */}
-              <SplitImage src={SITE_IMAGES.space.counter} alt="きたげんのカウンター席" />
-
+              <SplitImage
+                src={SITE_IMAGES.space.counter}
+                alt="きたげんのカウンター席"
+              />
             </div>
           </ScrollReveal>
         </div>
@@ -190,14 +208,18 @@ export default async function Home() {
         <div className="max-w-4xl mx-auto">
           <ScrollReveal>
             <div className="text-center mb-10">
-              <p className="text-[10px] tracking-[0.45em] text-accent/80 mb-2">GALLERY</p>
+              <p className="text-[10px] tracking-[0.45em] text-accent/80 mb-2">
+                GALLERY
+              </p>
               <h2 className="text-2xl font-bold">きたげんの料理</h2>
               <div className="flex items-center justify-center gap-3 mt-4">
                 <div className="w-8 h-px bg-accent/50" />
                 <div className="w-1 h-1 rounded-full bg-accent/70" />
                 <div className="w-8 h-px bg-accent/50" />
               </div>
-              <p className="text-sm text-muted mt-4">定番から季節のひと品まで。</p>
+              <p className="text-sm text-muted mt-4">
+                定番から季節のひと品まで。
+              </p>
             </div>
           </ScrollReveal>
           <ScrollReveal delay={80}>
@@ -212,14 +234,18 @@ export default async function Home() {
           <div className="max-w-2xl mx-auto">
             <ScrollReveal>
               <div className="text-center mb-12">
-                <p className="text-[10px] tracking-[0.5em] text-accent/70 mb-2">NEWS</p>
+                <p className="text-[10px] tracking-[0.5em] text-accent/70 mb-2">
+                  NEWS
+                </p>
                 <h2 className="text-2xl font-bold tracking-wide">お知らせ</h2>
                 <div className="flex items-center justify-center gap-3 mt-4">
                   <div className="w-8 h-px bg-accent/50" />
                   <div className="w-1 h-1 rounded-full bg-accent/70" />
                   <div className="w-8 h-px bg-accent/50" />
                 </div>
-                <p className="text-xs text-muted mt-4 tracking-wider">きたげんからのご案内</p>
+                <p className="text-xs text-muted mt-4 tracking-wider">
+                  きたげんからのご案内
+                </p>
               </div>
             </ScrollReveal>
             <div className="space-y-4">
@@ -237,7 +263,6 @@ export default async function Home() {
       <section className="py-28 px-4 section-warm">
         <div className="max-w-lg mx-auto text-center">
           <ScrollReveal>
-
             {/* ラベル */}
             <p className="text-[9px] tracking-[0.65em] text-accent/70 font-medium mb-5">
               VISIT
@@ -257,14 +282,15 @@ export default async function Home() {
 
             {/* 本文 — 簡潔に3行以内 */}
             <p className="text-sm text-muted leading-[2.1] mb-12">
-              予約不要、お一人でもどうぞ。<br />
-              きたげんは、気軽に入れてちゃんとおいしい、<br />
+              予約不要、お一人でもどうぞ。
+              <br />
+              きたげんは、気軽に入れてちゃんとおいしい、
+              <br />
               桃谷の居酒屋です。
             </p>
 
             {/* CTA ボタン — 主従明確 */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-
               {/* Primary：メイン導線 */}
               <Link
                 href="/menu"
@@ -286,12 +312,10 @@ export default async function Home() {
               >
                 店舗情報・アクセス
               </Link>
-
             </div>
           </ScrollReveal>
         </div>
       </section>
-
     </div>
   );
 }

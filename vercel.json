@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "kitagen-izakaya.com"
+        }
+      ],
+      "destination": "https://www.kitagen-izakaya.com/:path*",
+      "permanent": true
+    }
+  ]
+}
