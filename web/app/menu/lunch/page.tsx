@@ -27,14 +27,21 @@ function MenuItemRow({
   name,
   description,
   price,
+  isNew,
 }: {
   name:         string;
   description?: string;
   price?:       string;
+  isNew?:       boolean;
 }) {
   return (
     <div className="flex items-start justify-between gap-4 py-4 border-b border-border/70 last:border-0 group">
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col">
+        {isNew && (
+          <span className="text-[10px] font-bold tracking-widest text-amber-600 leading-none mb-1">
+            NEW
+          </span>
+        )}
         <p className="font-medium text-foreground text-sm leading-snug group-hover:text-accent transition-colors duration-200">
           {name}
         </p>
@@ -90,6 +97,7 @@ export default async function LunchMenuPage() {
                         name={item.name}
                         description={item.description}
                         price={item.price}
+                        isNew={item.isNew}
                       />
                     ))}
                   </div>

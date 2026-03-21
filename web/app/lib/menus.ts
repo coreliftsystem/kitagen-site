@@ -12,6 +12,7 @@ export interface PublicMenuItem {
   category_main: string;
   category_sub: string;
   sortOrder: number;
+  isNew: boolean;
 }
 
 function mapApiItem(raw: Record<string, unknown>): PublicMenuItem {
@@ -25,6 +26,7 @@ function mapApiItem(raw: Record<string, unknown>): PublicMenuItem {
     category?: string;
     subCategory?: string;
     sortOrder?: number | string;
+    isNew?: boolean;
   };
 
   const basePrice = record.basePrice;
@@ -42,6 +44,7 @@ function mapApiItem(raw: Record<string, unknown>): PublicMenuItem {
     category_main: String(record.category ?? ""),
     category_sub: String(record.subCategory ?? ""),
     sortOrder: Number(record.sortOrder ?? 0),
+    isNew: record.isNew === true,
   };
 }
 
