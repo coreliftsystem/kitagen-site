@@ -14,7 +14,7 @@ const notoSansJP = Noto_Sans_JP({
 const SITE_URL = "https://kitagen-izakaya.com";
 const OG_IMAGE = "/og.png";
 
-const TITLE       = "きたげん｜桃谷の居酒屋・アットホームで気軽に飲める店";
+const TITLE       = "IZAKAYA きたげん｜桃谷の居酒屋・アットホームで気軽に飲める店";
 const DESCRIPTION = "桃谷の居酒屋「きたげん」は、アットホームで気軽に立ち寄れる優しい居酒屋。宴会や一人飲み、仕事帰りにも最適。人気メニューや営業時間、アクセス情報を掲載する公式サイトです。";
 
 export const metadata: Metadata = {
