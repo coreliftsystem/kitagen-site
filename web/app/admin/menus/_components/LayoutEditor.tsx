@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition, useMemo, useRef, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -32,19 +32,26 @@ import {
   Utensils,
   ShoppingBag,
   Menu,
+  ImageIcon,
+  LayoutGrid,
+  Upload,
 } from "lucide-react";
-import { saveLayout } from "../actions";
+import { saveLayout, saveLunchOrder, updateImageUrl, uploadMenuImageAction } from "../actions";
 import type { AdminMenuItem } from "../../../lib/adminMenus";
 
 // ── 定数 ─────────────────────────────────────────────────────
 
-type Tab = "top" | "menu" | "takeout";
+type Tab = "top" | "lunch" | "menu" | "takeout";
 
-const TABS: { key: Tab; label: string; description: string; field: keyof AdminMenuItem }[] = [
-  { key: "top",     label: "TOPページ",     description: "おすすめメニュー（上位3件が/トップに表示）",     field: "showOnTop" },
-  { key: "menu",    label: "メニューページ", description: "/menu のフード・ドリンク一覧",                   field: "showOnMenuPage" },
-  { key: "takeout", label: "テイクアウト",   description: "/takeout に表示されるメニュー",                 field: "showOnTakeout" },
+const TABS: { key: Tab; label: string; description: string; field?: keyof AdminMenuItem }[] = [
+  { key: "top",     label: "TOPページ",   description: "おすすめメニュー（上位3件が/トップに表示）",       field: "showOnTop" },
+  { key: "lunch",   label: "ランチ",      description: "/menu/lunch の表示順（subCategory=ランチ が自動表示）" },
+  { key: "menu",    label: "ディナー",    description: "/menu/dinner フード・ドリンク（ランチ除く）",       field: "showOnMenuPage" },
+  { key: "takeout", label: "テイクアウト", description: "/takeout に表示されるメニュー",                   field: "showOnTakeout" },
 ];
+
+// ランチ判定（subCategory === "ランチ" のアイテムは /menu/lunch に自動表示）
+const isLunchItem = (item: AdminMenuItem) => item.subCategory === "ランチ";
 
 const DRINK_ORDER = [
   "生ビール", "瓶ビール", "ハイボール", "サワー", "果実酒",
@@ -101,9 +108,9 @@ function fmtPrice(item: AdminMenuItem): string | null {
 // ── スマホプレビュー内: TOPカード（ソータブル） ──────────────
 
 function TopSortableCard({
-  item, index, onRemove,
+  item, index, onRemove, onSelect,
 }: {
-  item: AdminMenuItem; index: number; onRemove: () => void;
+  item: AdminMenuItem; index: number; onRemove: () => void; onSelect?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id });
@@ -147,6 +154,12 @@ function TopSortableCard({
       </div>
       {/* 操作（ホバー） */}
       <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {onSelect && (
+          <button onClick={(e) => { e.stopPropagation(); onSelect(); }}
+            className="w-7 h-7 flex items-center justify-center bg-indigo-500/80 hover:bg-indigo-600 text-white rounded-full transition-colors"
+            aria-label="画像を編集"
+          ><ImageIcon size={12} /></button>
+        )}
         <button onClick={onRemove}
           className="w-7 h-7 flex items-center justify-center bg-foreground/70 hover:bg-red-500 text-white rounded-full transition-colors"
           aria-label="外す"
@@ -163,9 +176,9 @@ function TopSortableCard({
 // ── スマホプレビュー内: メニュー行（ソータブル） ─────────────
 
 function MenuSortableRow({
-  item, onRemove,
+  item, onRemove, onSelect,
 }: {
-  item: AdminMenuItem; onRemove: () => void;
+  item: AdminMenuItem; onRemove: () => void; onSelect?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id });
@@ -193,15 +206,30 @@ function MenuSortableRow({
       </button>
       {/* テキスト */}
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-foreground text-[13px] leading-snug">
-          {item.name}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="font-medium text-foreground text-[13px] leading-snug truncate">
+            {item.name}
+          </p>
+          {isLunchItem(item) && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium shrink-0">ランチ</span>
+          )}
+        </div>
         {item.description && (
           <p className="text-[11px] text-muted mt-0.5 line-clamp-1">{item.description}</p>
         )}
       </div>
       {/* 価格 */}
       {price && <span className="text-[13px] text-accent font-medium tabular-nums shrink-0">{price}</span>}
+      {/* 画像編集ボタン（画像モード時のみ） */}
+      {onSelect && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onSelect(); }}
+          className="text-muted/20 group-hover:text-indigo-400 hover:!text-indigo-600 transition-colors shrink-0 p-0.5"
+          aria-label="画像を編集"
+        >
+          <ImageIcon size={13} />
+        </button>
+      )}
       {/* × ボタン（常時表示・右端） */}
       <button
         onClick={onRemove}
@@ -214,12 +242,62 @@ function MenuSortableRow({
   );
 }
 
+// ── スマホプレビュー内: ランチ行（ソータブル・削除なし） ────────
+
+function LunchSortableRow({
+  item, onSelect,
+}: {
+  item: AdminMenuItem; onSelect?: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+  const price = fmtPrice(item);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group flex items-center gap-2 px-1 py-2.5 border-b border-border/70 last:border-0 transition-all rounded-lg ${
+        isDragging
+          ? "opacity-50 bg-accent/10 shadow-md border-transparent"
+          : "hover:bg-black/[0.03]"
+      }`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="text-muted/25 group-hover:text-muted/60 hover:!text-muted cursor-grab active:cursor-grabbing touch-none transition-colors shrink-0 p-0.5"
+        aria-label="ドラッグで並び替え"
+      >
+        <GripVertical size={17} />
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-foreground text-[13px] leading-snug">{item.name}</p>
+        {item.description && (
+          <p className="text-[11px] text-muted mt-0.5 line-clamp-1">{item.description}</p>
+        )}
+      </div>
+      {price && <span className="text-[13px] text-accent font-medium tabular-nums shrink-0">{price}</span>}
+      {onSelect && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onSelect(); }}
+          className="text-muted/20 group-hover:text-indigo-400 hover:!text-indigo-600 transition-colors shrink-0 p-0.5"
+          aria-label="画像を編集"
+        >
+          <ImageIcon size={13} />
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── スマホプレビュー内: テイクアウトカード（ソータブル） ──────
 
 function TakeoutSortableCard({
-  item, onRemove,
+  item, onRemove, onSelect,
 }: {
-  item: AdminMenuItem; onRemove: () => void;
+  item: AdminMenuItem; onRemove: () => void; onSelect?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: item.id });
@@ -236,7 +314,7 @@ function TakeoutSortableCard({
           : "bg-background border-border hover:border-accent/40 hover:shadow-sm"
       }`}
     >
-      {/* 上段: ハンドル + ドット + 名前 + 価格 + × */}
+      {/* 上段: ハンドル + ドット + 名前 + 価格 + 画像 + × */}
       <div className="flex items-center gap-2">
         <button
           {...attributes}
@@ -249,6 +327,15 @@ function TakeoutSortableCard({
         <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
         <h3 className="flex-1 font-bold text-[13px] text-foreground">{item.name}</h3>
         {price && <span className="text-[13px] font-medium text-accent shrink-0 tabular-nums">{price}</span>}
+        {onSelect && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onSelect(); }}
+            className="text-muted/20 group-hover:text-indigo-400 hover:!text-indigo-600 transition-colors shrink-0"
+            aria-label="画像を編集"
+          >
+            <ImageIcon size={13} />
+          </button>
+        )}
         <button
           onClick={onRemove}
           className="text-muted/25 group-hover:text-muted/50 hover:!text-red-500 transition-colors shrink-0"
@@ -317,6 +404,16 @@ function TakeoutOverlay({ item }: { item: AdminMenuItem }) {
   );
 }
 
+function LunchOverlay({ item }: { item: AdminMenuItem }) {
+  const price = fmtPrice(item);
+  return (
+    <div className="flex items-center justify-between gap-3 py-3.5 px-4 bg-background rounded-xl border border-amber-200 shadow-2xl rotate-[0.5deg] scale-[1.02]">
+      <p className="font-medium text-foreground text-[13px]">{item.name}</p>
+      {price && <span className="text-[13px] text-accent font-medium shrink-0">{price}</span>}
+    </div>
+  );
+}
+
 // ── 左パネル: 追加可能アイテム行 ─────────────────────────────
 
 function AvailableRow({ item, onAdd }: { item: AdminMenuItem; onAdd: () => void }) {
@@ -334,9 +431,14 @@ function AvailableRow({ item, onAdd }: { item: AdminMenuItem; onAdd: () => void 
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-slate-700 truncate group-hover:text-slate-900 transition-colors">{item.name}</p>
+        <div className="flex items-center gap-1">
+          <p className="text-xs font-semibold text-slate-700 truncate group-hover:text-slate-900 transition-colors">{item.name}</p>
+          {isLunchItem(item) && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium shrink-0">ランチ</span>
+          )}
+        </div>
         <div className="flex items-center gap-1 mt-0.5">
-          {item.subCategory && (
+          {item.subCategory && !isLunchItem(item) && (
             <span className="text-[10px] text-slate-400">{item.subCategory}</span>
           )}
           {price && <span className="text-[10px] text-slate-400">· {price}</span>}
@@ -370,10 +472,12 @@ function PhoneContentTop({
   placedIds,
   itemMap,
   onRemove,
+  onSelect,
 }: {
   placedIds: string[];
   itemMap: Map<string, AdminMenuItem>;
   onRemove: (id: string) => void;
+  onSelect?: (id: string) => void;
 }) {
   return (
     <div className="px-4 py-8 bg-background min-h-full">
@@ -396,7 +500,7 @@ function PhoneContentTop({
               const item = itemMap.get(id);
               if (!item) return null;
               return (
-                <TopSortableCard key={id} item={item} index={i} onRemove={() => onRemove(id)} />
+                <TopSortableCard key={id} item={item} index={i} onRemove={() => onRemove(id)} onSelect={onSelect ? () => onSelect(id) : undefined} />
               );
             })}
           </div>
@@ -415,10 +519,12 @@ function PhoneContentMenu({
   sections,
   itemMap,
   onRemove,
+  onSelect,
 }: {
   sections: { food: MenuSection[]; drink: MenuSection[] };
   itemMap: Map<string, AdminMenuItem>;
   onRemove: (id: string) => void;
+  onSelect?: (id: string) => void;
 }) {
   const hasContent = sections.food.length > 0 || sections.drink.length > 0;
   if (!hasContent) {
@@ -461,7 +567,7 @@ function PhoneContentMenu({
                       const item = itemMap.get(id);
                       if (!item) return null;
                       return (
-                        <MenuSortableRow key={id} item={item} onRemove={() => onRemove(id)} />
+                        <MenuSortableRow key={id} item={item} onRemove={() => onRemove(id)} onSelect={onSelect ? () => onSelect(id) : undefined} />
                       );
                     })}
                   </SortableContext>
@@ -496,7 +602,7 @@ function PhoneContentMenu({
                       const item = itemMap.get(id);
                       if (!item) return null;
                       return (
-                        <MenuSortableRow key={id} item={item} onRemove={() => onRemove(id)} />
+                        <MenuSortableRow key={id} item={item} onRemove={() => onRemove(id)} onSelect={onSelect ? () => onSelect(id) : undefined} />
                       );
                     })}
                   </SortableContext>
@@ -509,6 +615,12 @@ function PhoneContentMenu({
           </p>
         </section>
       )}
+      {/* ランチ注記 */}
+      <div className="px-4 py-3 bg-amber-50/60 border-t border-amber-100/80">
+        <p className="text-[10px] text-amber-700/70">
+          ランチ（subCategory=ランチ）は /menu/lunch に自動表示・ここには含まれません
+        </p>
+      </div>
     </div>
   );
 }
@@ -517,10 +629,12 @@ function PhoneContentTakeout({
   placedIds,
   itemMap,
   onRemove,
+  onSelect,
 }: {
   placedIds: string[];
   itemMap: Map<string, AdminMenuItem>;
   onRemove: (id: string) => void;
+  onSelect?: (id: string) => void;
 }) {
   return (
     <div className="bg-card-bg min-h-full py-8 px-4">
@@ -539,12 +653,65 @@ function PhoneContentTakeout({
               const item = itemMap.get(id);
               if (!item) return null;
               return (
-                <TakeoutSortableCard key={id} item={item} onRemove={() => onRemove(id)} />
+                <TakeoutSortableCard key={id} item={item} onRemove={() => onRemove(id)} onSelect={onSelect ? () => onSelect(id) : undefined} />
               );
             })}
           </div>
         </SortableContext>
       )}
+    </div>
+  );
+}
+
+// ── スマホフレーム: ランチページ ──────────────────────────────
+
+function PhoneContentLunch({
+  placedIds,
+  itemMap,
+  onSelect,
+}: {
+  placedIds: string[];
+  itemMap: Map<string, AdminMenuItem>;
+  onSelect?: (id: string) => void;
+}) {
+  return (
+    <div className="bg-background min-h-full">
+      {/* ページヘッダー */}
+      <div className="py-8 px-4 text-center border-b border-border/50">
+        <p className="text-[9px] tracking-[0.45em] text-accent/80 mb-1.5">LUNCH</p>
+        <h2 className="text-base font-bold text-foreground">ランチメニュー</h2>
+        <p className="text-[10px] text-muted/60 mt-1">11:30〜14:00</p>
+        <div className="flex items-center justify-center gap-3 mt-2">
+          <div className="w-6 h-px bg-accent/50" />
+          <div className="w-1 h-1 rounded-full bg-accent/60" />
+          <div className="w-6 h-px bg-accent/50" />
+        </div>
+      </div>
+      {/* アイテムリスト */}
+      <div className="py-6 px-4">
+        {placedIds.length === 0 ? (
+          <PhoneEmptyState />
+        ) : (
+          <SortableContext items={placedIds} strategy={verticalListSortingStrategy}>
+            <div className="bg-background rounded-xl border border-border px-4">
+              {placedIds.map((id) => {
+                const item = itemMap.get(id);
+                if (!item) return null;
+                return (
+                  <LunchSortableRow
+                    key={id}
+                    item={item}
+                    onSelect={onSelect ? () => onSelect(id) : undefined}
+                  />
+                );
+              })}
+            </div>
+          </SortableContext>
+        )}
+        <p className="text-[10px] text-amber-600/70 text-center mt-4">
+          ※ subCategory=ランチ な全アクティブアイテムが自動表示されます
+        </p>
+      </div>
     </div>
   );
 }
@@ -561,6 +728,27 @@ export default function LayoutEditor({ items }: Props) {
   const [leftSearch, setLeftSearch]     = useState("");
   const [leftCategory, setLeftCategory] = useState("");
 
+  // 画像設定モード
+  const [viewMode, setViewMode]             = useState<"layout" | "image">("layout");
+  const [imageUrlInputs, setImageUrlInputs] = useState<Record<string, string>>({});
+  const [imageUrlOverrides, setImageUrlOverrides] = useState<Record<string, string | null>>({});
+  const [savingImageId, setSavingImageId]   = useState<string | null>(null);
+  const [savedImageIds, setSavedImageIds]   = useState<Set<string>>(new Set());
+  const [uploadingImageId, setUploadingImageId] = useState<string | null>(null);
+  const fileInputRef          = useRef<HTMLInputElement>(null);
+  const uploadTargetItemRef   = useRef<AdminMenuItem | null>(null);
+
+  // 画像モード用フィルター
+  const [imgSearch, setImgSearch]           = useState("");
+  const [imgCategory, setImgCategory]       = useState("");
+  const [imgTimeFilter, setImgTimeFilter]   = useState<"" | "lunch" | "dinner">("");
+  const [imgOnlyUnset, setImgOnlyUnset]     = useState(false);
+  const [imgOnlyVisible, setImgOnlyVisible] = useState(false);
+
+  // 画像モード: ハイライト & スクロール
+  const [highlightedId, setHighlightedId]   = useState<string | null>(null);
+  const imageRowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
   const [placed, setPlaced] = useState<Record<Tab, string[]>>(() => {
     const sort = (field: keyof AdminMenuItem) =>
       items
@@ -569,7 +757,16 @@ export default function LayoutEditor({ items }: Props) {
         .map((item) => item.id);
     return {
       top:     sort("showOnTop"),
-      menu:    sort("showOnMenuPage"),
+      // ランチ: subCategory=ランチ の全アクティブアイテム（表示フラグ不要）
+      lunch:   items
+        .filter((i) => i.isActive && isLunchItem(i))
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((i) => i.id),
+      // ディナー: showOnMenuPage=true かつランチ以外
+      menu:    items
+        .filter((i) => i.showOnMenuPage && !isLunchItem(i))
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((i) => i.id),
       takeout: sort("showOnTakeout"),
     };
   });
@@ -577,6 +774,113 @@ export default function LayoutEditor({ items }: Props) {
   const [committed, setCommitted] = useState(placed);
 
   const itemMap = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
+
+  // imageUrlOverrides を適用した itemMap（プレビューに即時反映）
+  const effectiveItemMap = useMemo(
+    () => new Map(items.map((item) => [
+      item.id,
+      item.id in imageUrlOverrides ? { ...item, imageUrl: imageUrlOverrides[item.id] } : item,
+    ])),
+    [items, imageUrlOverrides],
+  );
+
+  // 全タブで表示中の ID セット（placed.lunch にランチが入っているので全タブ統合で OK）
+  const allVisibleIds = useMemo(
+    () => new Set([...placed.top, ...placed.lunch, ...placed.menu, ...placed.takeout]),
+    [placed],
+  );
+
+  // 有効な imageUrl（保存済み優先）
+  function effectiveImageUrl(item: AdminMenuItem): string | null {
+    if (item.id in imageUrlOverrides) return imageUrlOverrides[item.id];
+    return item.imageUrl;
+  }
+
+  // 画像モード用フィルター済みリスト
+  const imageFilteredItems = useMemo(() => {
+    return items.filter((item) => {
+      if (!item.isActive) return false;
+      if (imgCategory && item.category !== imgCategory) return false;
+      if (imgTimeFilter === "lunch"  && !isLunchItem(item)) return false;
+      if (imgTimeFilter === "dinner" &&  isLunchItem(item)) return false;
+      if (imgOnlyUnset && !!effectiveImageUrl(item)) return false;
+      if (imgOnlyVisible && !allVisibleIds.has(item.id)) return false;
+      if (imgSearch) {
+        const q = imgSearch.toLowerCase();
+        if (!item.name.toLowerCase().includes(q) && !item.subCategory.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, imgCategory, imgTimeFilter, imgOnlyUnset, imgOnlyVisible, imgSearch, imageUrlOverrides, allVisibleIds]);
+
+  // ハイライト時に左パネルをスクロール
+  useEffect(() => {
+    if (!highlightedId) return;
+    const el = imageRowRefs.current.get(highlightedId);
+    el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [highlightedId]);
+
+  // プレビューカードから画像編集へジャンプ
+  function handleSelectForImage(id: string) {
+    setViewMode("image");
+    setImgSearch("");
+    setImgCategory("");
+    setImgTimeFilter("");
+    setImgOnlyUnset(false);
+    setImgOnlyVisible(false);
+    setHighlightedId(id);
+    // 既にハイライト済みの場合も scroll させるため一度リセット
+    setTimeout(() => {
+      const el = imageRowRefs.current.get(id);
+      el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }, 50);
+  }
+
+  function getImageInput(item: AdminMenuItem): string {
+    if (item.id in imageUrlInputs) return imageUrlInputs[item.id];
+    if (item.id in imageUrlOverrides) return imageUrlOverrides[item.id] ?? "";
+    return item.imageUrl ?? "";
+  }
+
+  async function handleSaveImageUrl(item: AdminMenuItem) {
+    const url = getImageInput(item).trim();
+    setSavingImageId(item.id);
+    try {
+      await updateImageUrl(item.id, url);
+      setImageUrlOverrides((prev) => ({ ...prev, [item.id]: url || null }));
+      setSavedImageIds((prev) => new Set([...prev, item.id]));
+      setTimeout(() => setSavedImageIds((prev) => { const s = new Set(prev); s.delete(item.id); return s; }), 2000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSavingImageId(null);
+    }
+  }
+
+  async function handleUploadFile(file: File, item: AdminMenuItem) {
+    setUploadingImageId(item.id);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const result = await uploadMenuImageAction(formData);
+      if (!result.ok || !result.imageUrl) {
+        console.error(result.error);
+        return;
+      }
+      const imageUrl = result.imageUrl;
+      setImageUrlInputs((prev) => ({ ...prev, [item.id]: imageUrl }));
+      await updateImageUrl(item.id, imageUrl);
+      setImageUrlOverrides((prev) => ({ ...prev, [item.id]: imageUrl }));
+      setSavedImageIds((prev) => new Set([...prev, item.id]));
+      setTimeout(() => setSavedImageIds((prev) => { const s = new Set(prev); s.delete(item.id); return s; }), 2000);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUploadingImageId(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   const currentPlacedIds = placed[activeTab];
   const isDirty = JSON.stringify(placed[activeTab]) !== JSON.stringify(committed[activeTab]);
@@ -587,11 +891,13 @@ export default function LayoutEditor({ items }: Props) {
     [placed.menu, itemMap],
   );
 
-  // 左パネル: 未配置アイテム
+  // 左パネル: 未配置アイテム（ランチタブは表示しない・ディナータブはランチを除外）
   const placedSet = new Set(currentPlacedIds);
   const availableItems = items.filter((item) => {
+    if (activeTab === "lunch") return false; // ランチは追加/削除なし
     if (placedSet.has(item.id)) return false;
     if (!item.isActive) return false;
+    if (activeTab === "menu" && isLunchItem(item)) return false; // ディナーにランチを追加させない
     if (leftCategory && item.category !== leftCategory) return false;
     if (leftSearch) {
       const q = leftSearch.toLowerCase();
@@ -655,10 +961,14 @@ export default function LayoutEditor({ items }: Props) {
   }
 
   function handleSave() {
-    const placedCurrentSet = new Set(placed[activeTab]);
-    const removedIds = committed[activeTab].filter((id) => !placedCurrentSet.has(id));
     startTransition(async () => {
-      await saveLayout(activeTab, placed[activeTab], removedIds);
+      if (activeTab === "lunch") {
+        await saveLunchOrder(placed.lunch);
+      } else {
+        const placedCurrentSet = new Set(placed[activeTab]);
+        const removedIds = committed[activeTab].filter((id) => !placedCurrentSet.has(id));
+        await saveLayout(activeTab, placed[activeTab], removedIds);
+      }
       setCommitted((prev) => ({ ...prev, [activeTab]: [...placed[activeTab]] }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
@@ -677,12 +987,24 @@ export default function LayoutEditor({ items }: Props) {
     setLeftCategory("");
   }
 
-  const activeItem  = activeId ? itemMap.get(activeId) : null;
+  const activeItem  = activeId ? effectiveItemMap.get(activeId) : null;
   const activeIndex = activeId ? currentPlacedIds.indexOf(activeId) : -1;
   const currentTabInfo = TABS.find((t) => t.key === activeTab)!;
 
   return (
     <div className="flex flex-col" style={{ height: "calc(100vh - 7.5rem)" }}>
+      {/* 画像アップロード用 hidden input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          const item = uploadTargetItemRef.current;
+          if (file && item) handleUploadFile(file, item);
+        }}
+      />
 
       {/* ── ヘッダーバー ──────────────────────────────────── */}
       <div className="flex-shrink-0 flex items-center justify-between mb-5">
@@ -724,8 +1046,26 @@ export default function LayoutEditor({ items }: Props) {
         {/* ── 左パネル: ページ選択 + 追加可能メニュー ──── */}
         <div className="w-72 flex-shrink-0 flex flex-col bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
+          {/* モード切替 */}
+          <div className="px-3 pt-3 pb-2.5 border-b border-slate-100 flex-shrink-0">
+            <div className="flex gap-0.5 bg-slate-100 rounded-lg p-0.5">
+              <button
+                onClick={() => setViewMode("layout")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${viewMode === "layout" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                <LayoutGrid size={11} />レイアウト
+              </button>
+              <button
+                onClick={() => setViewMode("image")}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-md transition-all ${viewMode === "image" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                <ImageIcon size={11} />画像設定
+              </button>
+            </div>
+          </div>
+
           {/* ページ選択タブ */}
-          <div className="px-4 pt-4 pb-3 border-b border-slate-100 flex-shrink-0">
+          <div className={`px-4 pt-4 pb-3 border-b border-slate-100 flex-shrink-0 ${viewMode === "image" ? "hidden" : ""}`}>
             <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">表示ページ</p>
             <div className="flex flex-col gap-1">
               {TABS.map((tab) => (
@@ -749,71 +1089,268 @@ export default function LayoutEditor({ items }: Props) {
             </div>
           </div>
 
-          {/* 検索 + フィルター */}
-          <div className="px-3 pt-3 pb-2 flex-shrink-0">
-            <div className="relative mb-2">
-              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <input
-                type="text"
-                value={leftSearch}
-                onChange={(e) => setLeftSearch(e.target.value)}
-                placeholder="名前で検索…"
-                className="w-full pl-7 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 placeholder:text-slate-400 transition-colors"
-              />
+          {/* 検索 + フィルター（レイアウトモード・ランチタブ以外） */}
+          {viewMode === "layout" && activeTab !== "lunch" && (
+            <div className="px-3 pt-3 pb-2 flex-shrink-0">
+              <div className="relative mb-2">
+                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={leftSearch}
+                  onChange={(e) => setLeftSearch(e.target.value)}
+                  placeholder="名前で検索…"
+                  className="w-full pl-7 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 placeholder:text-slate-400 transition-colors"
+                />
+              </div>
+              <div className="flex gap-1">
+                {CATEGORY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setLeftCategory(opt.value)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                      leftCategory === opt.value
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex gap-1">
-              {CATEGORY_OPTIONS.map((opt) => (
+          )}
+
+          {/* アイテムリスト（レイアウトモード） */}
+          {viewMode === "layout" && (
+            <div className="flex-1 overflow-y-auto px-2 py-1">
+              {activeTab === "lunch" ? (
+                <div className="mx-2 mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3.5">
+                  <p className="text-[11px] font-semibold text-amber-700 mb-1.5">ランチメニューについて</p>
+                  <p className="text-[10px] text-amber-600/80 leading-relaxed">
+                    subCategory が「ランチ」のアクティブなメニューが自動的に表示されます。
+                  </p>
+                  <p className="text-[10px] text-amber-600/80 leading-relaxed mt-1.5">
+                    追加・削除はできません。表示順はドラッグで変更できます。
+                  </p>
+                  <p className="text-[10px] text-amber-600/80 mt-1.5">
+                    現在 <span className="font-bold">{placed.lunch.length} 件</span> が表示対象です。
+                  </p>
+                </div>
+              ) : availableItems.length === 0 ? (
+                <p className="py-8 text-center text-xs text-slate-400">
+                  {leftSearch || leftCategory ? "条件に一致するメニューがありません" : "全メニューが配置済みです"}
+                </p>
+              ) : (
+                <>
+                  {availableFoodItems.length > 0 && (
+                    <div className="mb-1">
+                      <p className="px-2 pt-2 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        フード · {availableFoodItems.length}件
+                      </p>
+                      {availableFoodItems.map((item) => (
+                        <AvailableRow key={item.id} item={item} onAdd={() => handleAdd(item.id)} />
+                      ))}
+                    </div>
+                  )}
+                  {availableDrinkItems.length > 0 && (
+                    <div>
+                      <p className="px-2 pt-2 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        ドリンク · {availableDrinkItems.length}件
+                      </p>
+                      {availableDrinkItems.map((item) => (
+                        <AvailableRow key={item.id} item={item} onAdd={() => handleAdd(item.id)} />
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          {/* 画像モード: フィルター */}
+          {viewMode === "image" && (
+            <div className="px-3 pt-3 pb-2 flex-shrink-0 space-y-2">
+              <div className="relative">
+                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={imgSearch}
+                  onChange={(e) => setImgSearch(e.target.value)}
+                  placeholder="名前で検索…"
+                  className="w-full pl-7 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 placeholder:text-slate-400 transition-colors"
+                />
+              </div>
+              <div className="flex gap-1 flex-wrap">
+                {CATEGORY_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setImgCategory(opt.value)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                      imgCategory === opt.value ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-1 flex-wrap">
+                {([
+                  { value: "",       label: "全時間帯" },
+                  { value: "lunch",  label: "ランチ" },
+                  { value: "dinner", label: "ディナー" },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setImgTimeFilter(opt.value)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                      imgTimeFilter === opt.value
+                        ? opt.value === "lunch"  ? "bg-amber-500 text-white"
+                        : opt.value === "dinner" ? "bg-slate-700 text-white"
+                        :                          "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
                 <button
-                  key={opt.value}
-                  onClick={() => setLeftCategory(opt.value)}
+                  onClick={() => setImgOnlyUnset((v) => !v)}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                    leftCategory === opt.value
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    imgOnlyUnset ? "bg-amber-500 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                   }`}
                 >
-                  {opt.label}
+                  未設定のみ
                 </button>
-              ))}
+                <button
+                  onClick={() => setImgOnlyVisible((v) => !v)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                    imgOnlyVisible ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  表示中のみ
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* アイテムリスト（カテゴリ別セクション） */}
-          <div className="flex-1 overflow-y-auto px-2 py-1">
-            {availableItems.length === 0 ? (
-              <p className="py-8 text-center text-xs text-slate-400">
-                {leftSearch || leftCategory ? "条件に一致するメニューがありません" : "全メニューが配置済みです"}
-              </p>
-            ) : (
-              <>
-                {availableFoodItems.length > 0 && (
-                  <div className="mb-1">
-                    <p className="px-2 pt-2 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                      フード · {availableFoodItems.length}件
-                    </p>
-                    {availableFoodItems.map((item) => (
-                      <AvailableRow key={item.id} item={item} onAdd={() => handleAdd(item.id)} />
-                    ))}
-                  </div>
-                )}
-                {availableDrinkItems.length > 0 && (
-                  <div>
-                    <p className="px-2 pt-2 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                      ドリンク · {availableDrinkItems.length}件
-                    </p>
-                    {availableDrinkItems.map((item) => (
-                      <AvailableRow key={item.id} item={item} onAdd={() => handleAdd(item.id)} />
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          {/* 画像設定リスト（画像モード） */}
+          {viewMode === "image" && (
+            <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1.5">
+              {imageFilteredItems.length === 0 ? (
+                <p className="py-8 text-center text-xs text-slate-400">条件に一致するメニューがありません</p>
+              ) : (
+                imageFilteredItems.map((item) => {
+                  const currentUrl  = getImageInput(item);
+                  const isSaving    = savingImageId === item.id;
+                  const isSaved     = savedImageIds.has(item.id);
+                  const isHighlight = highlightedId === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      ref={(el) => {
+                        if (el) imageRowRefs.current.set(item.id, el);
+                        else imageRowRefs.current.delete(item.id);
+                      }}
+                      onClick={() => setHighlightedId(item.id)}
+                      className={`rounded-xl border p-2.5 transition-all cursor-pointer ${
+                        isHighlight
+                          ? "border-indigo-400 bg-indigo-50 shadow-sm shadow-indigo-100"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        {currentUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={currentUrl} alt={item.name}
+                            className="w-10 h-10 rounded-lg object-cover bg-slate-100 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                            <Utensils size={12} className="text-slate-300" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-slate-700 truncate">{item.name}</p>
+                          <p className="text-[10px] text-slate-400">
+                            {isLunchItem(item) ? "/menu/lunch 自動表示" : item.subCategory}
+                          </p>
+                        </div>
+                        <div className="flex flex-col gap-0.5 items-end shrink-0">
+                          {isLunchItem(item) && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-medium">ランチ</span>
+                          )}
+                          {allVisibleIds.has(item.id) && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-500 font-medium">表示中</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        {/* アップロードボタン（メイン） */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            uploadTargetItemRef.current = item;
+                            fileInputRef.current?.click();
+                          }}
+                          disabled={uploadingImageId === item.id || isSaving}
+                          className={`w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${
+                            uploadingImageId === item.id
+                              ? "bg-indigo-400 text-white cursor-not-allowed"
+                              : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                          }`}
+                        >
+                          {uploadingImageId === item.id
+                            ? <><Loader2 size={11} className="animate-spin" />アップロード中…</>
+                            : <><Upload size={11} />画像をアップロード</>
+                          }
+                        </button>
+                        {/* URL入力 + 保存（サブ） */}
+                        <div className="flex gap-1.5">
+                          <input
+                            type="url"
+                            value={currentUrl}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => setImageUrlInputs((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                            placeholder="または URL を入力…"
+                            className="flex-1 text-[11px] px-2 py-1.5 border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 placeholder:text-slate-300 transition-colors min-w-0"
+                          />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleSaveImageUrl(item); }}
+                            disabled={isSaving || uploadingImageId === item.id}
+                            className={`flex-shrink-0 flex items-center justify-center w-14 py-1.5 text-[11px] font-semibold rounded-lg transition-all ${
+                              isSaved  ? "bg-emerald-500 text-white" :
+                              isSaving ? "bg-indigo-400 text-white cursor-not-allowed" :
+                                         "bg-slate-200 hover:bg-slate-300 text-slate-600"
+                            }`}
+                          >
+                            {isSaving ? <Loader2 size={11} className="animate-spin" /> :
+                             isSaved  ? <Check size={11} /> : "保存"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
 
           <div className="px-4 py-2.5 border-t border-slate-100 flex-shrink-0">
-            <p className="text-[10px] text-slate-400">
-              {availableItems.length}件の未配置メニュー · + で追加
-            </p>
+            {viewMode === "layout" ? (
+              activeTab === "lunch" ? (
+                <p className="text-[10px] text-amber-500">
+                  ランチ {placed.lunch.length}件 · 並び順のみ保存
+                </p>
+              ) : (
+                <p className="text-[10px] text-slate-400">
+                  {availableItems.length}件の未配置メニュー · + で追加
+                </p>
+              )
+            ) : (
+              <p className="text-[10px] text-slate-400">
+                {items.filter((i) => i.isActive).length}件 · アップロードまたはURLで設定
+              </p>
+            )}
           </div>
         </div>
 
@@ -871,22 +1408,32 @@ export default function LayoutEditor({ items }: Props) {
                     {activeTab === "top" && (
                       <PhoneContentTop
                         placedIds={currentPlacedIds}
-                        itemMap={itemMap}
+                        itemMap={effectiveItemMap}
                         onRemove={handleRemove}
+                        onSelect={viewMode === "image" ? handleSelectForImage : undefined}
                       />
                     )}
                     {activeTab === "menu" && (
                       <PhoneContentMenu
                         sections={menuSections}
-                        itemMap={itemMap}
+                        itemMap={effectiveItemMap}
                         onRemove={handleRemove}
+                        onSelect={viewMode === "image" ? handleSelectForImage : undefined}
                       />
                     )}
                     {activeTab === "takeout" && (
                       <PhoneContentTakeout
                         placedIds={currentPlacedIds}
-                        itemMap={itemMap}
+                        itemMap={effectiveItemMap}
                         onRemove={handleRemove}
+                        onSelect={viewMode === "image" ? handleSelectForImage : undefined}
+                      />
+                    )}
+                    {activeTab === "lunch" && (
+                      <PhoneContentLunch
+                        placedIds={currentPlacedIds}
+                        itemMap={effectiveItemMap}
+                        onSelect={viewMode === "image" ? handleSelectForImage : undefined}
                       />
                     )}
 
@@ -894,6 +1441,7 @@ export default function LayoutEditor({ items }: Props) {
                       {activeItem && activeTab === "top"     && <TopOverlay     item={activeItem} index={activeIndex} />}
                       {activeItem && activeTab === "menu"    && <MenuOverlay    item={activeItem} />}
                       {activeItem && activeTab === "takeout" && <TakeoutOverlay item={activeItem} />}
+                      {activeItem && activeTab === "lunch"   && <LunchOverlay   item={activeItem} />}
                     </DragOverlay>
                   </DndContext>
                 </div>
@@ -904,9 +1452,20 @@ export default function LayoutEditor({ items }: Props) {
 
           {/* カードフッター（ヒント） */}
           <div className="px-6 py-2.5 border-t border-slate-100 flex-shrink-0 flex items-center justify-between">
-            <p className="text-[11px] text-slate-400">
-              ホバーで ×（外す）と ≡（並び替え）が表示されます
-            </p>
+            {viewMode === "image" ? (
+              <p className="text-[11px] text-slate-400">
+                <ImageIcon size={11} className="inline mr-1 text-indigo-400" />
+                アイコンをクリックで左パネルにスクロール
+              </p>
+            ) : activeTab === "lunch" ? (
+              <p className="text-[11px] text-amber-500">
+                ドラッグで表示順を変更できます（追加・削除なし）
+              </p>
+            ) : (
+              <p className="text-[11px] text-slate-400">
+                ホバーで ×（外す）と ≡（並び替え）が表示されます
+              </p>
+            )}
             <p className="text-[11px] text-slate-400">
               sortOrder は全タブ共通
             </p>

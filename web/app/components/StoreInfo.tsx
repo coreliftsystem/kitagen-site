@@ -168,6 +168,9 @@ export default function StoreInfo() {
               {PHONE}
             </a>
             <p className="text-xs text-muted mt-1">タップで発信できます</p>
+            <p className="text-xs text-muted/60 mt-2 leading-relaxed">
+              「ホームページを見た」とお伝えいただくと<br />ご案内がスムーズです。
+            </p>
           </div>
         </div>
       </InfoCard>

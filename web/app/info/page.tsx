@@ -24,8 +24,11 @@ const HOURS = {
       { label: "ディナー", open: "17:00", close: "22:00", lo: "21:30" },
     ],
   },
-  closed: "日曜日",
+  closed: "日曜日（変動あり）",
 };
+
+// 営業日カレンダーのURL（Google カレンダー等に差し替えてください）
+const CALENDAR_URL = "https://www.instagram.com/kitagen_izakaya/";
 
 const SEATS = {
   count:    "41席",
@@ -131,6 +134,27 @@ export default function InfoPage() {
             </div>
 
           </div>
+
+          {/* 補足 + カレンダー導線 */}
+          <div className="mt-5 space-y-3">
+            <p className="text-xs text-muted/70 leading-relaxed">
+              ※ 営業日・臨時休業はカレンダーをご確認ください
+            </p>
+            <a
+              href={CALENDAR_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-accent border border-accent/40
+                         px-4 py-2 rounded-sm hover:bg-accent/5 transition-colors duration-200"
+            >
+              営業日カレンダーを見る
+              <ExternalLink size={13} strokeWidth={1.8} />
+            </a>
+            <p className="text-xs text-muted/60 leading-relaxed">
+              ※ 急な営業時間の変更はInstagramでお知らせする場合があります
+            </p>
+          </div>
+
         </section>
 
         <div className="border-t-2 border-dashed border-foreground/30 -mx-6" />
@@ -240,8 +264,11 @@ export default function InfoPage() {
         <section className="pt-16 pb-14">
           <SectionLabel en="RESERVATION" ja="ご予約" />
 
-          <p className="text-sm text-muted mb-8">
+          <p className="text-sm text-muted mb-1.5">
             お電話でご予約いただけます。
+          </p>
+          <p className="text-xs text-muted/60 mb-8 leading-relaxed">
+            お電話の際は「ホームページを見た」とお伝えいただくとご案内がスムーズです。
           </p>
 
           <a
@@ -261,8 +288,13 @@ export default function InfoPage() {
         <section className="pt-16">
           <SectionLabel en="SOCIAL" ja="公式アカウント" />
 
-          <p className="text-sm text-muted mb-6">
+          <p className="text-sm text-muted leading-relaxed mb-1.5">
             料理や店内の様子をInstagramで発信しています。
+            <br />
+            最新情報や営業日の変更なども随時更新していますので、ぜひご確認ください。
+          </p>
+          <p className="text-xs text-muted/60 mb-6">
+            ※ 急な営業時間の変更はInstagramでお知らせする場合があります
           </p>
 
           <a

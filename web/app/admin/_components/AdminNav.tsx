@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Megaphone, UtensilsCrossed } from "lucide-react";
+import { LayoutDashboard, Megaphone, UtensilsCrossed, ImageIcon, FileText } from "lucide-react";
 
 const navItems = [
   {
@@ -10,6 +10,12 @@ const navItems = [
     label: "ダッシュボード",
     icon: LayoutDashboard,
     exact: true,
+  },
+  {
+    href: "/admin/top",
+    label: "サイト画像管理",
+    icon: ImageIcon,
+    exact: false,
   },
   {
     href: "/admin/news",
@@ -21,6 +27,12 @@ const navItems = [
     href: "/admin/menus",
     label: "メニュー管理",
     icon: UtensilsCrossed,
+    exact: false,
+  },
+  {
+    href: "/admin/documents",
+    label: "資料管理",
+    icon: FileText,
     exact: false,
   },
 ];

@@ -1,31 +1,68 @@
 /**
- * サイト画像の一元管理
- *
- * 現在は public/images/ 配下の静的ファイルを参照している。
- * 将来的にAPIから取得する場合はここの値を差し替えるだけでよい。
- *
- * 例（API化時）:
- *   const res = await fetch("/api/site-images");
- *   const data = await res.json();
- *   export const SITE_IMAGES = data;
+ * サーバー専用（Server Components / Server Actions から呼ぶ）
+ * Client Component からは直接 import しないこと。
+ * 定数だけ必要な場合は site-image-defaults.ts を使うこと。
  */
-export const SITE_IMAGES = {
-  hero: {
-    /** トップページ Hero 背景（SP用：縦長構図） */
-    sp: "/images/hero/hero-sp.jpg",
-    /** トップページ Hero 背景（PC用：横長構図） */
-    pc: "/images/hero/hero-pc.jpg",
-  },
-  about: {
-    /** ABOUTセクション — 店内全景 */
-    shop: "/images/about/shop.jpg",
-  },
-  food: {
-    /** FOODセクション — メイン料理写真 */
-    main: "/images/food/main.jpg",
-  },
-  space: {
-    /** SPACEセクション — カウンター席 */
-    counter: "/images/space/counter.jpg",
-  },
-} as const;
+import "server-only";
+import { DEFAULT_SITE_IMAGES } from "./site-image-defaults";
+
+export { DEFAULT_SITE_IMAGES };
+
+const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
+const SHOP_ID  = "kitagen";
+
+export interface SiteImages {
+  hero:  { sp: string; pc: string };
+  about: { shop: string };
+  food:  { main: string };
+  space: { counter: string };
+}
+
+// slot キー → SiteImages のパス対応
+const SLOT_MAP: Record<string, (imgs: SiteImages, url: string) => void> = {
+  "hero.sp":       (imgs, url) => { imgs.hero.sp       = url; },
+  "hero.pc":       (imgs, url) => { imgs.hero.pc       = url; },
+  "about.shop":    (imgs, url) => { imgs.about.shop    = url; },
+  "food.main":     (imgs, url) => { imgs.food.main     = url; },
+  "space.counter": (imgs, url) => { imgs.space.counter = url; },
+};
+
+export async function getSiteImages(): Promise<SiteImages> {
+  const result: SiteImages = {
+    hero:  { sp: DEFAULT_SITE_IMAGES.hero.sp, pc: DEFAULT_SITE_IMAGES.hero.pc },
+    about: { shop:    DEFAULT_SITE_IMAGES.about.shop    },
+    food:  { main:    DEFAULT_SITE_IMAGES.food.main     },
+    space: { counter: DEFAULT_SITE_IMAGES.space.counter },
+  };
+
+  if (!BASE_URL) return result;
+
+  try {
+    // type="top" と type="shop" の両方を取得
+    const [topRes, shopRes] = await Promise.all([
+      fetch(`${BASE_URL}/api/admin/documents?shopId=${SHOP_ID}&type=top`, {
+        next: { revalidate: 300 },
+      }),
+      fetch(`${BASE_URL}/api/admin/documents?shopId=${SHOP_ID}&type=shop`, {
+        next: { revalidate: 300 },
+      }),
+    ]);
+
+    const applyDocs = async (res: Response) => {
+      if (!res.ok) return;
+      const data = await res.json();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const doc of (data.documents ?? []) as any[]) {
+        if (doc.isActive && doc.slot && SLOT_MAP[doc.slot]) {
+          SLOT_MAP[doc.slot](result, String(doc.fileUrl));
+        }
+      }
+    };
+
+    await Promise.all([applyDocs(topRes), applyDocs(shopRes)]);
+  } catch {
+    // ネットワークエラー時はデフォルト画像を使用
+  }
+
+  return result;
+}

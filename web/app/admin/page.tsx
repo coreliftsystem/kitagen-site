@@ -1,7 +1,13 @@
 import Link from "next/link";
-import { Megaphone, UtensilsCrossed, ChevronRight } from "lucide-react";
+import { Megaphone, UtensilsCrossed, ChevronRight, ImageIcon, FileText } from "lucide-react";
 
 const sections = [
+  {
+    href: "/admin/top",
+    icon: ImageIcon,
+    label: "サイト画像管理",
+    description: "トップページ各セクションの画像をアップロード・管理",
+  },
   {
     href: "/admin/news",
     icon: Megaphone,
@@ -13,6 +19,12 @@ const sections = [
     icon: UtensilsCrossed,
     label: "メニュー管理",
     description: "メニューの表示設定・並び順を管理",
+  },
+  {
+    href: "/admin/documents",
+    icon: FileText,
+    label: "資料管理",
+    description: "メニュー・カレンダー資料（PDF/画像）のアップロードと管理",
   },
 ];
 
@@ -59,6 +71,7 @@ export default function AdminDashboard() {
         </h2>
         <ul className="text-xs text-slate-500 space-y-1 leading-relaxed">
           <li>・店舗情報管理（営業時間・定休日の更新）</li>
+          <li>・トップページ テキスト編集</li>
         </ul>
       </div>
     </div>

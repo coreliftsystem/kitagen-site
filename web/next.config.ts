@@ -27,8 +27,20 @@ function getRemotePatterns(): {
 }
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "20mb",
+    },
+  },
   images: {
-    remotePatterns: getRemotePatterns(),
+    remotePatterns: [
+      ...getRemotePatterns(),
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getMenusForTop } from "./lib/menus";
 import { getAnnouncements } from "./lib/announcements";
-import { SITE_IMAGES } from "./lib/site-images";
+import { getSiteImages } from "./lib/site-images";
 import ParallaxHero from "./components/ParallaxHero";
 import ScrollReveal from "./components/ScrollReveal";
 import PhotoStrip from "./components/PhotoStrip";
@@ -35,9 +35,10 @@ function SectionDivider() {
 }
 
 export default async function Home() {
-  const [topItems, announcements] = await Promise.all([
+  const [topItems, announcements, SITE_IMAGES] = await Promise.all([
     getMenusForTop(),
     getAnnouncements(),
+    getSiteImages(),
   ]);
   const photoItems = topItems.map((i) => ({ ...i, image: i.image ?? "" }));
   const recentNews = announcements.slice(0, 5);
