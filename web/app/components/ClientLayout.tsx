@@ -16,7 +16,7 @@ interface Props {
  */
 export default function ClientLayout({ header, footer, children }: Props) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/admin");
+  const isAdmin = pathname.startsWith("/portal") || pathname.startsWith("/admin");
 
   if (isAdmin) {
     // 管理画面: main ラッパーもヘッダー/フッターも外す

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// /admin/login は /admin/auth に統合されました
+// /portal/login は /portal/auth に統合されました
 export default function LoginRedirect() {
-  redirect("/admin/auth");
+  redirect("/portal/auth");
 }

@@ -1,9 +1,9 @@
 "use client";
 
-// web/app/admin/_components/LogoutButton.tsx
+// web/app/portal/_components/LogoutButton.tsx
 
 import { LogOut } from "lucide-react";
-import { logoutAction } from "@/app/admin/auth/actions";
+import { logoutAction } from "@/app/portal/auth/actions";
 
 export default function LogoutButton() {
   return (
