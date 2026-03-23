@@ -3,6 +3,8 @@
 // 管理画面用 メニュー取得データ層（Server Component から呼ぶ）
 // 書き込み操作は app/admin/menus/actions.ts の Server Actions を使う
 
+import { backendFetch } from "@/lib/backendFetch";
+
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
 const SHOP_ID  = "kitagen";
 
@@ -54,7 +56,7 @@ export async function getAdminMenus(): Promise<AdminMenuItem[]> {
   }
   const url = `${BASE_URL}/api/admin/menus?shopId=${SHOP_ID}`;
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await backendFetch(url, { cache: "no-store" });
     if (!res.ok) {
       console.error(`[adminMenus] list failed: status=${res.status}`);
       return [];

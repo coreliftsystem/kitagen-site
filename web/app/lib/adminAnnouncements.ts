@@ -3,6 +3,8 @@
 // 管理画面用 お知らせ取得データ層（Server Component から呼ぶ）
 // 書き込み操作は app/admin/news/actions.ts の Server Actions を使う
 
+import { backendFetch } from "@/lib/backendFetch";
+
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
 
 // ── 型定義 ─────────────────────────────────────────────────
@@ -42,7 +44,7 @@ export async function getAdminAnnouncements(): Promise<AdminAnnouncement[]> {
   }
   const url = `${BASE_URL}/api/admin/announcements`;
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await backendFetch(url, { cache: "no-store" });
     if (!res.ok) {
       console.error(`[adminAnnouncements] list failed: status=${res.status}`);
       return [];
@@ -66,7 +68,7 @@ export async function getAdminAnnouncement(
   }
   const url = `${BASE_URL}/api/admin/announcements/${id}`;
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await backendFetch(url, { cache: "no-store" });
     if (!res.ok) return null;
     const data = await res.json();
     return (data.item ?? null) as AdminAnnouncement | null;
