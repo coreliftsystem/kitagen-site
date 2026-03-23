@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { backendFetch } from "@/lib/backendFetch";
 
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
 const SHOP_ID  = "kitagen";
@@ -21,7 +22,7 @@ export async function uploadSiteImageAction(
     formData.set("slot", slot);
     formData.set("title", slot);
 
-    const res = await fetch(`${BASE_URL}/api/admin/documents/upload`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/documents/upload`, {
       method: "POST",
       body: formData,
     });
@@ -50,7 +51,7 @@ export async function registerSiteImageUrlAction(
   fileUrl: string
 ): Promise<{ ok: boolean; fileUrl?: string; docId?: string; error?: string }> {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/documents/register-url`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/documents/register-url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ shopId: SHOP_ID, type, slot, fileUrl, title: slot }),
@@ -78,7 +79,7 @@ export async function deleteSiteImageAction(
   id: string
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(
+    const res = await backendFetch(
       `${BASE_URL}/api/admin/documents/${id}?shopId=${SHOP_ID}`,
       { method: "DELETE" }
     );

@@ -1,4 +1,4 @@
-// web/middleware.ts
+// web/proxy.ts
 //
 // 役割：
 //   管理画面認証 — /portal/* への未認証アクセスを /portal/auth へリダイレクト
@@ -13,7 +13,7 @@ export const config = {
   matcher: ["/portal/:path*", "/admin/:path*"],
 };
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 旧 /admin/* は /portal/auth へリダイレクト（削除済みルートへのアクセス対策）

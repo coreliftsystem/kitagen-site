@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { backendFetch } from "@/lib/backendFetch";
 
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "http://localhost:3000";
 const SHOP_ID  = "kitagen";
@@ -26,7 +27,7 @@ export async function saveLayout(
     ...removedIds.map((id) => ({ id, [field]: false })),
   ];
 
-  const res = await fetch(`${BASE_URL}/api/admin/menus/bulk-display`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/menus/bulk-display`, {
     method:  "PATCH",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ shopId: SHOP_ID, updates }),
@@ -56,7 +57,7 @@ export async function updateMenuDisplay(
     sortOrder:      number;
   },
 ) {
-  const res = await fetch(`${BASE_URL}/api/admin/menus/${id}/display`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/menus/${id}/display`, {
     method:  "PATCH",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({
@@ -88,7 +89,7 @@ export async function saveLunchOrder(orderedIds: string[]) {
 
   const updates = orderedIds.map((id, i) => ({ id, sortOrder: (i + 1) * 10 }));
 
-  const res = await fetch(`${BASE_URL}/api/admin/menus/bulk-sort`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/menus/bulk-sort`, {
     method:  "PATCH",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ shopId: SHOP_ID, updates }),
@@ -110,7 +111,7 @@ export async function uploadMenuImageAction(
 ): Promise<{ ok: boolean; imageUrl?: string; error?: string }> {
   formData.set("shopId", SHOP_ID);
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/menus/upload-image`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/menus/upload-image`, {
       method: "POST",
       body:   formData,
     });
@@ -125,7 +126,7 @@ export async function uploadMenuImageAction(
 // ── 画像URL の更新 ─────────────────────────────────────────
 
 export async function updateImageUrl(id: string, imageUrl: string) {
-  const res = await fetch(`${BASE_URL}/api/admin/menus/${id}/display`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/menus/${id}/display`, {
     method:  "PATCH",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ shopId: SHOP_ID, imageUrl }),

@@ -1,6 +1,8 @@
 // web/app/lib/adminDocuments.ts
 // 資料管理用データ層（Server Component から呼ぶ）
 
+import { backendFetch } from "@/lib/backendFetch";
+
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
 const SHOP_ID  = "kitagen";
 
@@ -28,7 +30,7 @@ export async function listDocuments(
   try {
     const params = new URLSearchParams({ shopId: SHOP_ID });
     if (type) params.set("type", type);
-    const res = await fetch(`${BASE_URL}/api/admin/documents?${params}`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/documents?${params}`, {
       cache: "no-store",
     });
     if (!res.ok) return [];

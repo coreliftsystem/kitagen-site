@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { backendFetch } from "@/lib/backendFetch";
 import { isEffectivelyPublished } from "../../lib/adminAnnouncements";
 
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "http://localhost:3000";
@@ -28,7 +29,7 @@ export async function createAnnouncement(formData: FormData) {
     throw new Error("タイトルは必須です");
   }
 
-  const res = await fetch(`${BASE_URL}/api/admin/announcements`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/announcements`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ title, body, isPublished, publishAt }),
@@ -50,7 +51,7 @@ export async function createAnnouncement(formData: FormData) {
 export async function updateAnnouncement(id: string, formData: FormData) {
   // サーバー側でも公開済みチェック（UI をすり抜けた直接リクエスト対策）
   // 「実効公開済み」= isPublished=true かつ publishAt が過去（または null）
-  const currentRes = await fetch(`${BASE_URL}/api/admin/announcements/${id}`, {
+  const currentRes = await backendFetch(`${BASE_URL}/api/admin/announcements/${id}`, {
     cache: "no-store",
   });
   if (currentRes.ok) {
@@ -69,7 +70,7 @@ export async function updateAnnouncement(id: string, formData: FormData) {
     throw new Error("タイトルは必須です");
   }
 
-  const res = await fetch(`${BASE_URL}/api/admin/announcements/${id}`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/announcements/${id}`, {
     method:  "PUT",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ title, body, isPublished, publishAt }),
@@ -89,7 +90,7 @@ export async function updateAnnouncement(id: string, formData: FormData) {
 // ── 削除（論理削除） ──────────────────────────────────────
 
 export async function deleteAnnouncement(id: string) {
-  const res = await fetch(`${BASE_URL}/api/admin/announcements/${id}`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/announcements/${id}`, {
     method: "DELETE",
   });
 

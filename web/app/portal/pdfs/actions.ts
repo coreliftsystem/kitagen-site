@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { backendFetch } from "@/lib/backendFetch";
 
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
 const SHOP_ID = "kitagen";
@@ -8,7 +9,7 @@ const SHOP_ID = "kitagen";
 export async function uploadPdfAction(formData: FormData): Promise<{ ok: boolean; error?: string }> {
   try {
     formData.set("shopId", SHOP_ID);
-    const res = await fetch(`${BASE_URL}/api/admin/pdfs/upload`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/pdfs/upload`, {
       method: "POST",
       body: formData,
     });
@@ -26,7 +27,7 @@ export async function updatePdfAction(
   updates: { label?: string; active?: boolean; sortOrder?: number }
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/pdfs/${id}`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/pdfs/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ shopId: SHOP_ID, ...updates }),
@@ -42,7 +43,7 @@ export async function updatePdfAction(
 
 export async function bulkSortPdfsAction(ids: string[]): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/pdfs/bulk-sort`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/pdfs/bulk-sort`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ shopId: SHOP_ID, ids }),
@@ -58,7 +59,7 @@ export async function bulkSortPdfsAction(ids: string[]): Promise<{ ok: boolean; 
 
 export async function deletePdfAction(id: string): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/pdfs/${id}?shopId=${SHOP_ID}`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/pdfs/${id}?shopId=${SHOP_ID}`, {
       method: "DELETE",
     });
     const data = await res.json();

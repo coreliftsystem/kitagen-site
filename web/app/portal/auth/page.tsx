@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { loginAction } from "./actions";
 import type { LoginState } from "./actions";
 
@@ -8,6 +8,14 @@ const initialState: LoginState = {};
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, initialState);
+
+  // cookie がブラウザに保存されてからハードナビゲーションする
+  // (redirect() によるソフトナビゲーションはミドルウェアと競合するため使わない)
+  useEffect(() => {
+    if (state.success) {
+      window.location.replace("/portal");
+    }
+  }, [state.success]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">

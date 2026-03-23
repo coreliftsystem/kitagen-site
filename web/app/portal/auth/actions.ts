@@ -25,6 +25,7 @@ const COOKIE_OPTIONS = {
 
 export type LoginState = {
   error?: string;
+  success?: boolean;
 };
 
 export async function loginAction(
@@ -38,9 +39,16 @@ export async function loginAction(
     return { error: "IDまたはパスワードが正しくありません。" };
   }
 
-  const token = await createSessionToken();
+  let token: string;
+  try {
+    token = await createSessionToken();
+  } catch {
+    return { error: "ログイン処理に失敗しました。環境変数を確認してください。" };
+  }
   (await cookies()).set(SESSION_COOKIE_NAME, token, COOKIE_OPTIONS);
-  redirect("/portal");
+  // redirect() はソフトナビゲーションになりミドルウェアと競合するため、
+  // クライアント側でハードナビゲーションさせる
+  return { success: true };
 }
 
 // ── ログアウト ────────────────────────────────────────────

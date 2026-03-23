@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { backendFetch } from "@/lib/backendFetch";
 import type { DocumentItem } from "../../lib/adminDocuments";
 
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "";
@@ -34,7 +35,7 @@ export async function registerDocumentUrlAction(
   slot?: string
 ): Promise<{ ok: boolean; document?: DocumentItem; error?: string }> {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/documents/register-url`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/documents/register-url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ shopId: SHOP_ID, type, fileUrl, title, slot: slot ?? null }),
@@ -53,7 +54,7 @@ export async function uploadDocumentAction(
 ): Promise<{ ok: boolean; document?: DocumentItem; error?: string }> {
   try {
     formData.set("shopId", SHOP_ID);
-    const res = await fetch(`${BASE_URL}/api/admin/documents/upload`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/documents/upload`, {
       method: "POST",
       body: formData,
     });
@@ -71,7 +72,7 @@ export async function updateDocumentAction(
   updates: { title?: string; isActive?: boolean; sortOrder?: number }
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/documents/${id}`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/documents/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ shopId: SHOP_ID, ...updates }),
@@ -89,7 +90,7 @@ export async function bulkSortDocumentsAction(
   ids: string[]
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(`${BASE_URL}/api/admin/documents/bulk-sort`, {
+    const res = await backendFetch(`${BASE_URL}/api/admin/documents/bulk-sort`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ shopId: SHOP_ID, ids }),
@@ -107,7 +108,7 @@ export async function deleteDocumentAction(
   id: string
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const res = await fetch(
+    const res = await backendFetch(
       `${BASE_URL}/api/admin/documents/${id}?shopId=${SHOP_ID}`,
       { method: "DELETE" }
     );

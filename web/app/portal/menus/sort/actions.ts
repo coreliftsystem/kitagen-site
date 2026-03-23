@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { backendFetch } from "@/lib/backendFetch";
 
 const BASE_URL = process.env.MENU_API_BASE_URL ?? "http://localhost:3000";
 const SHOP_ID  = "kitagen";
@@ -37,7 +38,7 @@ export async function saveLayout(
     })),
   ];
 
-  const res = await fetch(`${BASE_URL}/api/admin/menus/bulk-display`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/menus/bulk-display`, {
     method:  "PATCH",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ shopId: SHOP_ID, updates }),
@@ -61,7 +62,7 @@ export async function saveLayout(
 export async function bulkUpdateSortOrder(
   updates: { id: string; sortOrder: number }[],
 ) {
-  const res = await fetch(`${BASE_URL}/api/admin/menus/bulk-sort`, {
+  const res = await backendFetch(`${BASE_URL}/api/admin/menus/bulk-sort`, {
     method:  "PATCH",
     headers: { "Content-Type": "application/json" },
     body:    JSON.stringify({ shopId: SHOP_ID, updates }),
