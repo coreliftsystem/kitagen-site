@@ -14,8 +14,8 @@ const notoSansJP = Noto_Sans_JP({
 const SITE_URL = "https://kitagen-izakaya.com";
 const OG_IMAGE = "/og.png";
 
-const TITLE       = "IZAKAYA きたげん｜桃谷の居酒屋・アットホームで気軽に飲める店";
-const DESCRIPTION = "桃谷の居酒屋「きたげん」は、アットホームで気軽に立ち寄れる優しい居酒屋。宴会や一人飲み、仕事帰りにも最適。人気メニューや営業時間、アクセス情報を掲載する公式サイトです。";
+const TITLE       = "IZAKAYA きたげん｜桃谷の居酒屋【公式サイト】";
+const DESCRIPTION = "桃谷の居酒屋「IZAKAYA きたげん」公式サイト。こだわりの料理とお酒を楽しめるお店です。ランチ・ディナー・テイクアウト対応。宴会や飲み会にもおすすめ。";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -23,7 +23,11 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   keywords: ["きたげん", "桃谷 居酒屋", "大阪 居酒屋"],
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.ico",  sizes: "any" },
+      { url: "/favicon.png",  type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: TITLE,
