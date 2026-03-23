@@ -51,7 +51,7 @@ export default function MobileNav() {
         </div>
 
         {/* ナビゲーション */}
-        <nav className="flex-1 overflow-y-auto flex flex-col justify-center px-7">
+        <nav className="flex-1 overflow-y-auto flex flex-col px-7 py-8">
           <p className="text-[9px] tracking-[0.5em] text-accent/60 mb-7 font-medium">
             NAVIGATION
           </p>
