@@ -27,13 +27,6 @@ function parseDocument(raw: Record<string, any>): DocumentItem {
   };
 }
 
-export async function registerMenuUrlAction(
-  fileUrl: string,
-  title: string
-): Promise<{ ok: boolean; document?: DocumentItem; error?: string }> {
-  return registerDocumentUrlAction(fileUrl, title, "menu");
-}
-
 export async function registerDocumentUrlAction(
   fileUrl: string,
   title: string,
