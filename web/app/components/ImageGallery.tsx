@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface GalleryImage {
   url: string;
@@ -13,13 +13,35 @@ interface Props {
 }
 
 export default function ImageGallery({ images }: Props) {
-  const [selected,     setSelected]     = useState(0);
-  const [modal,        setModal]        = useState<number | null>(null);
-  const [touchStartX,  setTouchStartX]  = useState<number | null>(null);
+  const [modal,       setModal]       = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
-  const count = images.length;
+  const count      = images.length;
+  const scrollRef  = useRef<HTMLDivElement>(null);
+  const itemRefs   = useRef<(HTMLDivElement | null)[]>([]);
 
-  // キーボードナビゲーション
+  // ── スクロール位置から現在インデックスを検出 ──────────────────
+  function handleScroll() {
+    const container = scrollRef.current;
+    if (!container) return;
+    const containerLeft = container.getBoundingClientRect().left;
+    let closestIdx = 0;
+    let closestDist = Infinity;
+    itemRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const dist = Math.abs(el.getBoundingClientRect().left - containerLeft);
+      if (dist < closestDist) { closestDist = dist; closestIdx = i; }
+    });
+    setActiveIndex(closestIdx);
+  }
+
+  // ── ドットクリックでスクロール ────────────────────────────────
+  function scrollToIndex(i: number) {
+    itemRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+  }
+
+  // ── キーボードナビゲーション（モーダル内） ────────────────────
   const handleKey = useCallback((e: KeyboardEvent) => {
     if (modal === null) return;
     if (e.key === "ArrowRight") setModal((i) => i !== null ? Math.min(i + 1, count - 1) : null);
@@ -32,7 +54,7 @@ export default function ImageGallery({ images }: Props) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [handleKey]);
 
-  // モーダル中はスクロールをロック
+  // ── モーダル中はボディスクロールをロック ─────────────────────
   useEffect(() => {
     document.body.style.overflow = modal !== null ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -40,110 +62,116 @@ export default function ImageGallery({ images }: Props) {
 
   if (count === 0) return null;
 
-  function openModal(i: number) {
-    setModal(i);
-  }
+  function goPrev() { setModal((i) => i !== null && i > 0         ? i - 1 : i); }
+  function goNext() { setModal((i) => i !== null && i < count - 1 ? i + 1 : i); }
 
-  function closeModal() {
-    setModal(null);
-  }
-
-  function goPrev() {
-    setModal((i) => i !== null && i > 0 ? i - 1 : i);
-  }
-
-  function goNext() {
-    setModal((i) => i !== null && i < count - 1 ? i + 1 : i);
-  }
-
-  return (
-    <>
-      {/* ─────────── PC: サムネイル + メイン画像 ─────────── */}
-      <div className="hidden md:flex gap-4 items-start">
-
-        {/* サムネイル列（複数枚のときのみ） */}
-        {count > 1 && (
-          <div className="flex flex-col gap-2 shrink-0 w-[72px]">
-            {images.map((img, i) => (
-              <button
-                key={i}
-                onClick={() => setSelected(i)}
-                className={`relative w-[72px] h-[56px] rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                  selected === i
-                    ? "border-accent shadow-sm"
-                    : "border-border opacity-50 hover:opacity-80 hover:border-accent/40"
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={img.url}
-                  alt={img.alt}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* メイン画像 */}
-        <div
-          className="flex-1 relative rounded-xl overflow-hidden cursor-zoom-in group border border-border bg-stone-50"
-          onClick={() => openModal(selected)}
+  // ── 1枚のみの場合は横スクロール不要 ──────────────────────────
+  if (count === 1) {
+    return (
+      <>
+        <button
+          onClick={() => setModal(0)}
+          className="block w-full max-w-xl mx-auto rounded-xl overflow-hidden border border-border
+                     bg-stone-50 shadow-sm hover:shadow-md transition-shadow"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={images[selected].url}
-            alt={images[selected].alt}
-            className="w-full object-contain max-h-[65vh]"
-          />
-          <div className="absolute inset-0 flex items-end justify-end p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="bg-black/30 rounded-full p-1.5 backdrop-blur-sm">
-              <ZoomIn size={16} className="text-white" />
+          <img src={images[0].url} alt={images[0].alt} className="w-full object-contain" />
+        </button>
+
+        {/* モーダル（1枚） */}
+        {modal === 0 && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm"
+            onClick={() => setModal(null)}
+          >
+            <button
+              onClick={() => setModal(null)}
+              className="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white bg-black/40 rounded-full"
+              aria-label="閉じる"
+            >
+              <X size={20} />
+            </button>
+            <div className="max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={images[0].url}
+                alt={images[0].alt}
+                className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+              />
             </div>
           </div>
-        </div>
-      </div>
+        )}
+      </>
+    );
+  }
 
-      {/* ─────────── スマホ: カード縦並び ─────────── */}
-      <div className="md:hidden space-y-3">
+  // ── 複数枚: 横スクロールギャラリー ───────────────────────────
+  return (
+    <>
+      {/* スクロールコンテナ */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-3"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {/* WebKit スクロールバー非表示 */}
+        <style>{`.img-gallery::-webkit-scrollbar { display: none; }`}</style>
+
         {images.map((img, i) => (
-          <button
+          <div
             key={i}
-            onClick={() => openModal(i)}
-            className="w-full rounded-xl overflow-hidden border border-border bg-stone-50 shadow-sm active:scale-[0.99] transition-transform"
+            ref={(el) => { itemRefs.current[i] = el; }}
+            className="flex-none snap-start w-[85vw] md:w-auto"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={img.url}
-              alt={img.alt}
-              className="w-full object-contain"
-            />
-            {img.alt && (
-              <p className="text-xs text-muted text-left px-4 py-2 border-t border-border/50">
-                {img.alt}
-              </p>
-            )}
-          </button>
+            <button
+              onClick={() => setModal(i)}
+              className="block w-full rounded-xl overflow-hidden border border-border
+                         bg-stone-50 shadow-sm hover:shadow-md transition-shadow
+                         active:scale-[0.99]"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={img.url}
+                alt={img.alt}
+                className="w-full md:h-[60vh] md:w-auto object-contain"
+              />
+            </button>
+          </div>
         ))}
       </div>
 
-      {/* ─────────── モーダル ─────────── */}
+      {/* ドットインジケーター */}
+      <div className="flex justify-center gap-2 mt-3">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => scrollToIndex(i)}
+            aria-label={`${i + 1}枚目`}
+            className={`rounded-full transition-all duration-200 ${
+              i === activeIndex
+                ? "w-4 h-1.5 bg-accent"
+                : "w-1.5 h-1.5 bg-border hover:bg-accent/40"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* ── モーダル ─────────────────────────────────────────── */}
       {modal !== null && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm"
-          onClick={closeModal}
+          onClick={() => setModal(null)}
         >
-          {/* 閉じるボタン */}
           <button
-            onClick={closeModal}
+            onClick={() => setModal(null)}
             className="absolute top-4 right-4 z-10 p-2 text-white/80 hover:text-white bg-black/40 rounded-full transition-colors"
             aria-label="閉じる"
           >
             <X size={20} />
           </button>
 
-          {/* 前へ */}
-          {count > 1 && modal > 0 && (
+          {modal > 0 && (
             <button
               onClick={(e) => { e.stopPropagation(); goPrev(); }}
               className="absolute left-3 z-10 p-2.5 text-white/80 hover:text-white bg-black/40 rounded-full transition-colors"
@@ -153,7 +181,6 @@ export default function ImageGallery({ images }: Props) {
             </button>
           )}
 
-          {/* 画像（スワイプ対応） */}
           <div
             className="max-w-[90vw] max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
@@ -174,8 +201,7 @@ export default function ImageGallery({ images }: Props) {
             />
           </div>
 
-          {/* 次へ */}
-          {count > 1 && modal < count - 1 && (
+          {modal < count - 1 && (
             <button
               onClick={(e) => { e.stopPropagation(); goNext(); }}
               className="absolute right-3 z-10 p-2.5 text-white/80 hover:text-white bg-black/40 rounded-full transition-colors"
@@ -185,21 +211,18 @@ export default function ImageGallery({ images }: Props) {
             </button>
           )}
 
-          {/* ドットインジケーター */}
-          {count > 1 && (
-            <div className="absolute bottom-5 flex gap-1.5">
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={(e) => { e.stopPropagation(); setModal(i); }}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
-                    i === modal ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"
-                  }`}
-                  aria-label={`${i + 1}枚目`}
-                />
-              ))}
-            </div>
-          )}
+          <div className="absolute bottom-5 flex gap-1.5">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); setModal(i); }}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                  i === modal ? "bg-white scale-125" : "bg-white/40 hover:bg-white/70"
+                }`}
+                aria-label={`${i + 1}枚目`}
+              />
+            ))}
+          </div>
         </div>
       )}
     </>
