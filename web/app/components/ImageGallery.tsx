@@ -134,7 +134,7 @@ export default function ImageGallery({ images }: Props) {
               <img
                 src={img.url}
                 alt={img.alt}
-                className="w-full md:h-[60vh] md:w-auto object-contain"
+                className="w-full h-[50vh] md:h-[60vh] md:w-auto object-contain"
               />
             </button>
           </div>
