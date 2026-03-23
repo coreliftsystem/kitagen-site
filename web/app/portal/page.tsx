@@ -1,13 +1,7 @@
 import Link from "next/link";
-import { Megaphone, UtensilsCrossed, ChevronRight, ImageIcon, FileText } from "lucide-react";
+import { Megaphone, UtensilsCrossed, ChevronRight, Layers } from "lucide-react";
 
 const sections = [
-  {
-    href: "/portal/top",
-    icon: ImageIcon,
-    label: "サイト画像管理",
-    description: "トップページ各セクションの画像をアップロード・管理",
-  },
   {
     href: "/portal/news",
     icon: Megaphone,
@@ -22,9 +16,9 @@ const sections = [
   },
   {
     href: "/portal/documents",
-    icon: FileText,
-    label: "資料管理",
-    description: "メニュー・カレンダー資料（PDF/画像）のアップロードと管理",
+    icon: Layers,
+    label: "メディア管理",
+    description: "サイト画像・各種PDF・資料をまとめて管理",
   },
 ];
 

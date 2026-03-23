@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Megaphone, UtensilsCrossed, ImageIcon, FileText } from "lucide-react";
+import { LayoutDashboard, Megaphone, UtensilsCrossed, Layers } from "lucide-react";
 
 const navItems = [
   {
@@ -10,12 +10,6 @@ const navItems = [
     label: "ダッシュボード",
     icon: LayoutDashboard,
     exact: true,
-  },
-  {
-    href: "/portal/top",
-    label: "サイト画像管理",
-    icon: ImageIcon,
-    exact: false,
   },
   {
     href: "/portal/news",
@@ -31,8 +25,8 @@ const navItems = [
   },
   {
     href: "/portal/documents",
-    label: "資料管理",
-    icon: FileText,
+    label: "メディア管理",
+    icon: Layers,
     exact: false,
   },
 ];

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   FileText,
   Upload,
@@ -12,6 +13,9 @@ import {
   ExternalLink,
   Loader2,
   ImageIcon,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import type { DocumentItem } from "../../../lib/adminDocuments";
 import {
@@ -42,7 +46,6 @@ function FormatBadge({ format }: { format: string }) {
   );
 }
 
-// ── 登録方法バッジ（URLのみ） ─────────────────────────────
 function SourceBadge({ sourceType }: { sourceType: "upload" | "url" }) {
   if (sourceType !== "url") return null;
   return (
@@ -52,7 +55,6 @@ function SourceBadge({ sourceType }: { sourceType: "upload" | "url" }) {
   );
 }
 
-// ── サムネイル or PDF アイコン ────────────────────────────
 function FilePreview({ item }: { item: DocumentItem }) {
   if (item.resourceType === "image") {
     return (
@@ -71,7 +73,6 @@ function FilePreview({ item }: { item: DocumentItem }) {
   );
 }
 
-// ── URL入力フォーム（メニューのみ）───────────────────────
 function UrlInputForm({
   onSubmit,
   onCancel,
@@ -90,25 +91,21 @@ function UrlInputForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-2">
-      <div>
-        <input
-          type="url"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://..."
-          required
-          className="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 placeholder:text-slate-300"
-        />
-      </div>
-      <div>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="タイトル（省略可）"
-          className="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 placeholder:text-slate-300"
-        />
-      </div>
+      <input
+        type="url"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="https://..."
+        required
+        className="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 placeholder:text-slate-300"
+      />
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="タイトル（省略可）"
+        className="w-full text-sm px-3 py-2 border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 placeholder:text-slate-300"
+      />
       <div className="flex gap-2 pt-1">
         <button
           type="submit"
@@ -129,37 +126,93 @@ function UrlInputForm({
   );
 }
 
+// ── タブ定義 ──────────────────────────────────────────────
+type TabKey = "lunch" | "dinner" | "takeout" | "calendar";
+
+const TABS: { key: TabKey; label: string; desc: string }[] = [
+  {
+    key:   "lunch",
+    label: "ランチ",
+    desc:  "ランチメニューページに表示する画像を登録できます。ドラッグで並び順を変更できます。",
+  },
+  {
+    key:   "dinner",
+    label: "ディナー",
+    desc:  "ディナーメニューページに表示する画像を登録できます。ドラッグで並び順を変更できます。",
+  },
+  {
+    key:   "takeout",
+    label: "テイクアウト",
+    desc:  "テイクアウトページに表示するメニュー画像を登録できます。公開中のものを1件にする場合は、古いものを先に非公開にしてください。",
+  },
+  {
+    key:   "calendar",
+    label: "カレンダー",
+    desc:  "営業カレンダーなどを登録できます。新しいファイルをアップロードすると、現在公開中のものは自動的に非公開になります。",
+  },
+];
+
 // ── メインコンポーネント ──────────────────────────────────
 
 type InputMode = "upload" | "url";
 
 interface Props {
-  menuDocs:     DocumentItem[];
+  lunchDocs:    DocumentItem[];
+  dinnerDocs:   DocumentItem[];
   calendarDocs: DocumentItem[];
+  takeoutDocs:  DocumentItem[];
 }
 
 export default function DocumentManager({
-  menuDocs:     initMenu,
+  lunchDocs:    initLunch,
+  dinnerDocs:   initDinner,
   calendarDocs: initCal,
+  takeoutDocs:  initTakeout,
 }: Props) {
-  const [tab, setTab]               = useState<"menu" | "calendar">("menu");
-  const [menuDocs, setMenuDocs]     = useState<DocumentItem[]>(initMenu);
-  const [calDocs,  setCalDocs]      = useState<DocumentItem[]>(initCal);
-  const [inputMode, setInputMode]   = useState<InputMode>("upload");
-  const [error,    setError]        = useState<string | null>(null);
-  const [toast,    setToast]        = useState<string | null>(null);
-  const [uploading, setUploading]   = useState(false);
+  const router = useRouter();
+  const [tab,        setTab]        = useState<TabKey>("lunch");
+  const [lunchDocs,  setLunchDocs]  = useState<DocumentItem[]>(initLunch);
+  const [dinnerDocs, setDinnerDocs] = useState<DocumentItem[]>(initDinner);
+  const [calDocs,    setCalDocs]    = useState<DocumentItem[]>(initCal);
+  const [takeDocs,   setTakeDocs]   = useState<DocumentItem[]>(initTakeout);
+  const [inputMode, setInputMode] = useState<InputMode>("upload");
+  const [error,     setError]     = useState<string | null>(null);
+  const [toast,     setToast]     = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [editingId,    setEditingId]    = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
   const dragIdRef    = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
   const [isPending, startTransition] = useTransition();
 
-  const items    = tab === "menu" ? menuDocs : calDocs;
-  const setItems = tab === "menu" ? setMenuDocs : setCalDocs;
+  // 編集モード開始時にinputへフォーカス
+  useEffect(() => {
+    if (editingId) editInputRef.current?.focus();
+  }, [editingId]);
+
+  const items    = tab === "lunch" ? lunchDocs    : tab === "dinner" ? dinnerDocs    : tab === "takeout" ? takeDocs : calDocs;
+  const setItems = tab === "lunch" ? setLunchDocs : tab === "dinner" ? setDinnerDocs : tab === "takeout" ? setTakeDocs : setCalDocs;
+
+  const currentTabDef = TABS.find((t) => t.key === tab)!;
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
+  }
+
+  // ── アップロード後にステート更新 ────────────────────────
+  function addDocToState(doc: DocumentItem) {
+    if (doc.type === "calendar") {
+      setCalDocs((prev) => [...prev.map((d) => ({ ...d, isActive: false })), doc]);
+    } else if (doc.type === "lunch") {
+      setLunchDocs((prev) => [...prev, doc]);
+    } else if (doc.type === "dinner") {
+      setDinnerDocs((prev) => [...prev, doc]);
+    } else if (doc.type === "takeout") {
+      setTakeDocs((prev) => [...prev, doc]);
+    }
   }
 
   // ── アップロード ────────────────────────────────────────
@@ -175,9 +228,10 @@ export default function DocumentManager({
       const result = await uploadDocumentAction(fd);
       if (!result.ok) {
         setError(result.error ?? "アップロードに失敗しました");
-      } else {
+      } else if (result.document) {
+        addDocToState(result.document);
         showToast("アップロードしました");
-        window.location.reload();
+        router.refresh();
       }
     } finally {
       setUploading(false);
@@ -193,9 +247,10 @@ export default function DocumentManager({
       if (!result.ok) {
         setError(result.error ?? "登録に失敗しました");
       } else {
+        if (result.document) addDocToState(result.document);
         showToast("登録しました");
         setInputMode("upload");
-        window.location.reload();
+        router.refresh();
       }
     });
   }
@@ -220,15 +275,30 @@ export default function DocumentManager({
   }
 
   // ── タイトル編集 ─────────────────────────────────────────
-  function handleTitleChange(id: string, title: string) {
-    setItems((prev) => prev.map((d) => (d._id === id ? { ...d, title } : d)));
+  function startEditing(item: DocumentItem) {
+    setEditingId(item._id);
+    setEditingTitle(item.title);
   }
 
-  function handleTitleBlur(item: DocumentItem, title: string) {
-    if (title.trim() === item.title) return;
+  function cancelEditing() {
+    setEditingId(null);
+    setEditingTitle("");
+  }
+
+  function commitEditing(item: DocumentItem) {
+    const trimmed = editingTitle.trim();
+    setEditingId(null);
+    setEditingTitle("");
+    if (!trimmed || trimmed === item.title) return;
+    setItems((prev) => prev.map((d) => (d._id === item._id ? { ...d, title: trimmed } : d)));
     startTransition(async () => {
-      const result = await updateDocumentAction(item._id, { title: title.trim() });
-      if (!result.ok) setError(result.error ?? "更新に失敗しました");
+      const result = await updateDocumentAction(item._id, { title: trimmed });
+      if (!result.ok) {
+        setError(result.error ?? "更新に失敗しました");
+        setItems((prev) => prev.map((d) => (d._id === item._id ? { ...d, title: item.title } : d)));
+      } else {
+        showToast("名前を保存しました");
+      }
     });
   }
 
@@ -253,10 +323,8 @@ export default function DocumentManager({
     });
   }
 
-  // ── ドラッグ&ドロップ（メニューのみ）───────────────────
-  function handleDragStart(id: string) {
-    dragIdRef.current = id;
-  }
+  // ── ドラッグ&ドロップ（メニューのみ） ───────────────────
+  function handleDragStart(id: string) { dragIdRef.current = id; }
 
   function handleDragOver(e: React.DragEvent, id: string) {
     e.preventDefault();
@@ -269,12 +337,12 @@ export default function DocumentManager({
     dragIdRef.current = null;
     if (!srcId || srcId === targetId) return;
 
-    const next = [...menuDocs];
+    const next = [...items];
     const si = next.findIndex((d) => d._id === srcId);
     const ti = next.findIndex((d) => d._id === targetId);
     const [moved] = next.splice(si, 1);
     next.splice(ti, 0, moved);
-    setMenuDocs(next);
+    setItems(next);
 
     startTransition(async () => {
       const result = await bulkSortDocumentsAction(next.map((d) => d._id));
@@ -287,27 +355,27 @@ export default function DocumentManager({
 
   return (
     <div>
-      {/* タブ */}
+      {/* ── サブタブ ── */}
       <div className="flex gap-2 mb-6">
-        {(["menu", "calendar"] as const).map((t) => (
+        {TABS.map(({ key, label }) => (
           <button
-            key={t}
-            onClick={() => { setTab(t); setInputMode("upload"); }}
+            key={key}
+            onClick={() => { setTab(key); setInputMode("upload"); }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              tab === t
+              tab === key
                 ? "bg-slate-800 text-white"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            {t === "menu" ? "メニュー資料" : "カレンダー資料"}
+            {label}
             <span className="ml-1.5 text-xs opacity-60">
-              ({t === "menu" ? menuDocs.length : calDocs.length})
+              ({key === "lunch" ? lunchDocs.length : key === "dinner" ? dinnerDocs.length : key === "takeout" ? takeDocs.length : calDocs.length})
             </span>
           </button>
         ))}
       </div>
 
-      {/* トースト / エラー */}
+      {/* ── トースト / エラー ── */}
       {toast && (
         <div className="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
           {toast}
@@ -320,7 +388,7 @@ export default function DocumentManager({
         </div>
       )}
 
-      {/* カレンダー：公開中バナー */}
+      {/* ── カレンダー：公開中バナー ── */}
       {tab === "calendar" && activeCalendar && (
         <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3">
           <span className="text-xs font-semibold text-amber-700 shrink-0">公開中</span>
@@ -337,7 +405,7 @@ export default function DocumentManager({
         </div>
       )}
 
-      {/* 登録エリア */}
+      {/* ── 登録エリア ── */}
       <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
         {/* 入力方法トグル */}
         <div className="flex gap-1 mb-4 p-1 bg-white rounded-lg border border-slate-200 w-fit">
@@ -365,7 +433,7 @@ export default function DocumentManager({
           </button>
         </div>
 
-        {/* アップロード入力 */}
+        {/* アップロード */}
         {inputMode === "upload" && (
           <div>
             <input
@@ -384,9 +452,7 @@ export default function DocumentManager({
               {uploading ? "アップロード中..." : "ファイルをアップロード"}
             </button>
             <p className="text-xs text-slate-400 mt-2">
-              対応形式: PDF / JPG / PNG / WEBP（最大 20MB）
-              {tab === "calendar" && " ・ 新規アップ時は既存の公開ものが自動で非公開になります"}
-              {tab === "menu"     && " ・ ドラッグで並び順を変更できます"}
+              JPG / PNG / WEBP / PDF（最大 20MB）・{currentTabDef.desc}
             </p>
           </div>
         )}
@@ -395,8 +461,8 @@ export default function DocumentManager({
         {inputMode === "url" && (
           <div>
             <p className="text-xs text-slate-500 mb-3">
-              既存のURLをそのまま登録できます。ファイルはCloudinaryに保存されません。
-              {tab === "calendar" && " 登録時に既存の公開カレンダーは自動で非公開になります。"}
+              既存のURLをそのまま登録できます。ファイルはCloudinaryに保存されません。{" "}
+              {currentTabDef.desc}
             </p>
             <UrlInputForm
               onSubmit={handleUrlSubmit}
@@ -406,21 +472,21 @@ export default function DocumentManager({
         )}
       </div>
 
-      {/* 一覧 */}
+      {/* ── 一覧 ── */}
       {items.length === 0 ? (
         <div className="text-center py-16 text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
           <div className="flex items-center justify-center gap-2 mb-3 opacity-40">
             <ImageIcon size={24} />
             <FileText size={24} />
           </div>
-          <p className="text-sm">資料が登録されていません</p>
+          <p className="text-sm">登録されているファイルがありません</p>
         </div>
       ) : (
         <div className="space-y-2">
           {items.map((item) => (
             <div
               key={item._id}
-              draggable={tab === "menu"}
+              draggable={tab === "lunch" || tab === "dinner"}
               onDragStart={() => handleDragStart(item._id)}
               onDragOver={(e) => handleDragOver(e, item._id)}
               onDrop={() => handleDrop(item._id)}
@@ -431,31 +497,62 @@ export default function DocumentManager({
                   : "border-slate-200 hover:border-slate-300"
               } ${!item.isActive ? "opacity-50" : ""}`}
             >
-              {tab === "menu" && (
+              {(tab === "lunch" || tab === "dinner") && (
                 <GripVertical size={15} className="text-slate-300 cursor-grab shrink-0" />
               )}
 
               <FilePreview item={item} />
 
-              {/* タイトル + バッジ */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                   <FormatBadge format={item.format} />
                   <SourceBadge sourceType={item.sourceType} />
                   {!item.isActive && (
                     <span className="text-[10px] text-slate-400">非公開</span>
                   )}
                 </div>
-                <input
-                  type="text"
-                  value={item.title}
-                  onChange={(e) => handleTitleChange(item._id, e.target.value)}
-                  onBlur={(e) => handleTitleBlur(item, e.target.value)}
-                  className="w-full text-sm bg-transparent border-b border-transparent hover:border-slate-200 focus:border-slate-400 focus:outline-none px-0.5 py-0.5 text-slate-700 truncate"
-                />
+                {editingId === item._id ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      ref={editInputRef}
+                      type="text"
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitEditing(item);
+                        if (e.key === "Escape") cancelEditing();
+                      }}
+                      className="flex-1 text-sm px-2 py-1 border border-slate-400 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-300 text-slate-700 min-w-0"
+                    />
+                    <button
+                      onClick={() => commitEditing(item)}
+                      className="p-1 text-emerald-600 hover:text-emerald-800 transition-colors shrink-0"
+                      title="保存"
+                    >
+                      <Check size={15} />
+                    </button>
+                    <button
+                      onClick={cancelEditing}
+                      className="p-1 text-slate-400 hover:text-slate-600 transition-colors shrink-0"
+                      title="キャンセル"
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 group/title">
+                    <span className="text-sm text-slate-700 truncate">{item.title}</span>
+                    <button
+                      onClick={() => startEditing(item)}
+                      className="p-0.5 text-slate-300 hover:text-slate-500 opacity-0 group-hover/title:opacity-100 transition-all shrink-0"
+                      title="名前を変更"
+                    >
+                      <Pencil size={12} />
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* アクション */}
               <div className="flex items-center gap-0.5 shrink-0">
                 <a
                   href={item.fileUrl}

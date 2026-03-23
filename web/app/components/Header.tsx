@@ -3,17 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import MobileNav from "./MobileNav";
+import { NAV_LINKS } from "@/app/lib/nav";
 
 const TEL = "070-1744-2839";
-
-const NAV_LINKS = [
-  { href: "/",            label: "トップ"     },
-  { href: "/menu/lunch",  label: "ランチ"     },
-  { href: "/menu/dinner", label: "ディナー"   },
-  { href: "/info",        label: "店舗情報"   },
-  { href: "/news",        label: "お知らせ"   },
-  { href: "/survey",      label: "アンケート" },
-];
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);

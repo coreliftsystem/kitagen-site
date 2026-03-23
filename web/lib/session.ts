@@ -37,7 +37,8 @@ function decodeBase64url(str: string): ArrayBuffer {
 }
 
 async function getSigningKey(): Promise<CryptoKey> {
-  const secret = process.env.SESSION_SECRET ?? "dev-only-insecure-fallback";
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw new Error("[session] SESSION_SECRET が設定されていません。");
   const keyData = new TextEncoder().encode(secret);
   return crypto.subtle.importKey(
     "raw",

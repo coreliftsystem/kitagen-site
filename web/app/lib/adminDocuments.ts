@@ -7,7 +7,7 @@ const SHOP_ID  = "kitagen";
 export interface DocumentItem {
   _id:                string;
   shopId:             string;
-  type:               "menu" | "calendar" | "top" | "shop";
+  type:               "lunch" | "dinner" | "menu" | "calendar" | "top" | "shop" | "takeout";
   slot:               string | null;
   title:              string;
   fileUrl:            string;
@@ -22,7 +22,7 @@ export interface DocumentItem {
 }
 
 export async function listDocuments(
-  type?: "menu" | "calendar" | "top" | "shop"
+  type?: "lunch" | "dinner" | "menu" | "calendar" | "top" | "shop" | "takeout"
 ): Promise<DocumentItem[]> {
   if (!BASE_URL) return [];
   try {
@@ -33,7 +33,7 @@ export async function listDocuments(
     });
     if (!res.ok) return [];
     const data = await res.json();
-    const VALID_TYPES = ["menu", "calendar", "top", "shop"] as const;
+    const VALID_TYPES = ["lunch", "dinner", "menu", "calendar", "top", "shop", "takeout"] as const;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (data.documents ?? []).map((raw: Record<string, any>): DocumentItem => ({
       _id:                String(raw._id ?? ""),

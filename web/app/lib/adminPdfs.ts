@@ -7,7 +7,7 @@ const SHOP_ID = "kitagen";
 export interface PdfItem {
   _id: string;
   shopId: string;
-  type: "menu" | "calendar";
+  type: "menu" | "calendar" | "takeout";
   label: string;
   url: string;
   cloudinaryPublicId: string;
@@ -17,7 +17,7 @@ export interface PdfItem {
   updatedAt: string;
 }
 
-export async function listPdfs(type?: "menu" | "calendar"): Promise<PdfItem[]> {
+export async function listPdfs(type?: "menu" | "calendar" | "takeout"): Promise<PdfItem[]> {
   if (!BASE_URL) return [];
   try {
     const params = new URLSearchParams({ shopId: SHOP_ID });
@@ -38,7 +38,7 @@ function mapPdf(raw: Record<string, any>): PdfItem {
   return {
     _id: String(raw._id ?? ""),
     shopId: String(raw.shopId ?? ""),
-    type: raw.type === "calendar" ? "calendar" : "menu",
+    type: raw.type === "calendar" ? "calendar" : raw.type === "takeout" ? "takeout" : "menu",
     label: String(raw.label ?? ""),
     url: String(raw.url ?? ""),
     cloudinaryPublicId: String(raw.cloudinaryPublicId ?? ""),

@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
-import { ShoppingBag, Phone, FileText } from "lucide-react";
+import { ShoppingBag, Phone, ImageIcon } from "lucide-react";
 import { getMenusForTakeout } from "../lib/menus";
+import { listDocuments } from "../lib/adminDocuments";
 
 export const metadata: Metadata = {
   title: "テイクアウト｜きたげん",
@@ -10,7 +11,11 @@ export const metadata: Metadata = {
 const PHONE = "070-1744-2839";
 
 export default async function TakeoutPage() {
-  const items = await getMenusForTakeout();
+  const [items, takeoutDocs] = await Promise.all([
+    getMenusForTakeout(),
+    listDocuments("takeout"),
+  ]);
+  const activePdf = takeoutDocs.find((d) => d.isActive) ?? null;
 
   return (
     <div className="min-h-screen pt-16">
@@ -81,30 +86,38 @@ export default async function TakeoutPage() {
 
           <p className="text-xs text-muted text-center mt-6 leading-relaxed">
             ※ 表示価格は目安です。内容・サイズにより前後する場合がございます。<br />
-            詳細はお電話にてご確認ください。
+            この他にもテイクアウトメニューがございます。詳細は下のメニューをご確認ください。
           </p>
         </div>
       </section>
 
-      {/* ── 全メニューPDF ────────────────────────────────── */}
+      {/* ── テイクアウトメニュー画像 ──────────────────────── */}
       <section className="py-16 px-4 section-warm border-t border-border">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs tracking-[0.4em] text-accent/80 mb-3">PDF</p>
-          <h2 className="text-xl font-bold text-foreground mb-3">全メニューを見る</h2>
+          <p className="text-xs tracking-[0.4em] text-accent/80 mb-3">MENU</p>
+          <h2 className="text-xl font-bold text-foreground mb-3">テイクアウトメニューを見る</h2>
           <p className="text-sm text-muted mb-8">
-            全品目・価格を掲載したPDFメニューをご用意しています。
+            全品目・価格を掲載したメニューをご用意しています。
           </p>
-          <button
-            disabled
-            className="inline-flex items-center gap-2 px-10 py-3 border border-border text-muted rounded-sm text-sm tracking-wider cursor-not-allowed"
-            title="準備中"
-          >
-            <FileText size={14} strokeWidth={1.5} />
-            全メニューPDFを見る（準備中）
-          </button>
-          <p className="text-xs text-muted/60 mt-4">
-            ※ 現在準備中です。しばらくお待ちください。
-          </p>
+          {activePdf ? (
+            <a
+              href={activePdf.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-10 py-3 bg-accent hover:bg-accent/90 text-white rounded-sm text-sm tracking-wider transition-colors duration-200"
+            >
+              <ImageIcon size={14} strokeWidth={1.5} />
+              メニューを見る
+            </a>
+          ) : (
+            <button
+              disabled
+              className="inline-flex items-center gap-2 px-10 py-3 border border-border text-muted rounded-sm text-sm tracking-wider cursor-not-allowed"
+            >
+              <ImageIcon size={14} strokeWidth={1.5} />
+              メニューを見る（準備中）
+            </button>
+          )}
         </div>
       </section>
 

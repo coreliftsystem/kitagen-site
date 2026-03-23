@@ -315,14 +315,15 @@ function SlotCard({
 // ── メインコンポーネント ──────────────────────────────────
 
 interface Props {
-  topDocs:  DocumentItem[];
-  shopDocs: DocumentItem[];
+  topDocs:     DocumentItem[];
+  shopDocs:    DocumentItem[];
+  takeoutDocs: DocumentItem[];
 }
 
-export default function SiteImageManager({ topDocs, shopDocs }: Props) {
+export default function SiteImageManager({ topDocs, shopDocs, takeoutDocs }: Props) {
   // slot → doc のマップを state で管理（楽観的更新用）
   const [docMap, setDocMap] = useState<Record<string, DocumentItem | undefined>>(() => {
-    const all = [...topDocs, ...shopDocs];
+    const all = [...topDocs, ...shopDocs, ...takeoutDocs];
     const map: Record<string, DocumentItem | undefined> = {};
     for (const doc of all) {
       if (doc.slot && doc.isActive) map[doc.slot] = doc;

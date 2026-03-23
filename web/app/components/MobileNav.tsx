@@ -4,18 +4,9 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Phone } from "lucide-react";
+import { NAV_LINKS } from "@/app/lib/nav";
 
 const TEL = "070-1744-2839";
-
-const navLinks = [
-  { href: "/",            ja: "トップ",       en: "Top"     },
-  { href: "/menu/lunch",  ja: "ランチ",       en: "Lunch"   },
-  { href: "/menu/dinner", ja: "ディナー",     en: "Dinner"  },
-  { href: "/info",        ja: "店舗情報",     en: "Info"    },
-  { href: "/takeout",     ja: "テイクアウト", en: "Takeout" },
-  { href: "/news",        ja: "お知らせ",     en: "News"    },
-  { href: "/survey",      ja: "アンケート",   en: "Survey"  },
-];
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -65,7 +56,7 @@ export default function MobileNav() {
             NAVIGATION
           </p>
           <ul className="divide-y divide-border">
-            {navLinks.map(({ href, ja, en }, i) => (
+            {NAV_LINKS.map(({ href, label, en }, i) => (
               <li
                 key={href}
                 style={{ transitionDelay: open ? `${i * 40 + 60}ms` : "0ms" }}
@@ -77,7 +68,7 @@ export default function MobileNav() {
                   className="flex items-center justify-between py-4 group"
                 >
                   <span className="text-lg font-medium text-foreground group-hover:text-accent transition-colors duration-200">
-                    {ja}
+                    {label}
                   </span>
                   <span className="text-[10px] tracking-[0.3em] text-muted/50 group-hover:text-accent/60 transition-colors duration-200 uppercase">
                     {en}

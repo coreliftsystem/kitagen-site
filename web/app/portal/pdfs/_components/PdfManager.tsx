@@ -24,12 +24,14 @@ import {
 interface Props {
   menuPdfs: PdfItem[];
   calendarPdfs: PdfItem[];
+  takeoutPdfs: PdfItem[];
 }
 
-export default function PdfManager({ menuPdfs: initMenu, calendarPdfs: initCal }: Props) {
-  const [tab, setTab] = useState<"menu" | "calendar">("menu");
+export default function PdfManager({ menuPdfs: initMenu, calendarPdfs: initCal, takeoutPdfs: initTakeout }: Props) {
+  const [tab, setTab] = useState<"menu" | "calendar" | "takeout">("menu");
   const [menuPdfs, setMenuPdfs] = useState<PdfItem[]>(initMenu);
   const [calendarPdfs, setCalendarPdfs] = useState<PdfItem[]>(initCal);
+  const [takeoutPdfs, setTakeoutPdfs] = useState<PdfItem[]>(initTakeout);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -38,8 +40,8 @@ export default function PdfManager({ menuPdfs: initMenu, calendarPdfs: initCal }
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const dragIdRef = useRef<string | null>(null);
 
-  const items = tab === "menu" ? menuPdfs : calendarPdfs;
-  const setItems = tab === "menu" ? setMenuPdfs : setCalendarPdfs;
+  const items = tab === "menu" ? menuPdfs : tab === "takeout" ? takeoutPdfs : calendarPdfs;
+  const setItems = tab === "menu" ? setMenuPdfs : tab === "takeout" ? setTakeoutPdfs : setCalendarPdfs;
 
   function showSuccess(msg: string) {
     setSuccessMsg(msg);
@@ -158,7 +160,7 @@ export default function PdfManager({ menuPdfs: initMenu, calendarPdfs: initCal }
     <div>
       {/* タブ */}
       <div className="flex gap-2 mb-6">
-        {(["menu", "calendar"] as const).map((t) => (
+        {(["menu", "takeout", "calendar"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -168,7 +170,7 @@ export default function PdfManager({ menuPdfs: initMenu, calendarPdfs: initCal }
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            {t === "menu" ? "メニューPDF" : "カレンダーPDF"}
+            {t === "menu" ? "メニューPDF" : t === "takeout" ? "テイクアウトPDF" : "カレンダーPDF"}
           </button>
         ))}
       </div>
@@ -207,7 +209,7 @@ export default function PdfManager({ menuPdfs: initMenu, calendarPdfs: initCal }
           )}
           {uploading ? "アップロード中..." : "PDFをアップロード"}
         </button>
-        {tab === "calendar" && (
+        {(tab === "calendar" || tab === "takeout") && (
           <p className="text-xs text-slate-500 mt-2">
             ※ 新しいPDFをアップロードすると、現在公開中のものは自動的に非公開になります。
           </p>

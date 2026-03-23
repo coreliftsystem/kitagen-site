@@ -5,9 +5,10 @@ import PdfManager from "./_components/PdfManager";
 export const metadata: Metadata = { title: "PDF管理 | きたげん管理画面" };
 
 export default async function PdfsPage() {
-  const [menuPdfs, calendarPdfs] = await Promise.all([
+  const [menuPdfs, calendarPdfs, takeoutPdfs] = await Promise.all([
     listPdfs("menu"),
     listPdfs("calendar"),
+    listPdfs("takeout"),
   ]);
 
   return (
@@ -15,12 +16,12 @@ export default async function PdfsPage() {
       <div className="mb-8">
         <h1 className="text-xl font-bold text-slate-800">PDF管理</h1>
         <p className="text-sm text-slate-500 mt-1">
-          メニューPDFとカレンダーPDFを管理します。
+          メニュー・テイクアウト・カレンダーのPDFを管理します。
         </p>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <PdfManager menuPdfs={menuPdfs} calendarPdfs={calendarPdfs} />
+        <PdfManager menuPdfs={menuPdfs} calendarPdfs={calendarPdfs} takeoutPdfs={takeoutPdfs} />
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ export async function uploadSiteImageAction(
     formData.set("slot", slot);
     formData.set("title", slot);
 
-    const res = await fetch(`${BASE_URL}/api/portal/documents/upload`, {
+    const res = await fetch(`${BASE_URL}/api/admin/documents/upload`, {
       method: "POST",
       body: formData,
     });
@@ -30,6 +30,7 @@ export async function uploadSiteImageAction(
 
     revalidatePath("/");
     revalidatePath("/portal/top");
+    revalidatePath("/takeout");
     return {
       ok:     true,
       fileUrl: data.document?.fileUrl,
@@ -49,7 +50,7 @@ export async function registerSiteImageUrlAction(
   fileUrl: string
 ): Promise<{ ok: boolean; fileUrl?: string; docId?: string; error?: string }> {
   try {
-    const res = await fetch(`${BASE_URL}/api/portal/documents/register-url`, {
+    const res = await fetch(`${BASE_URL}/api/admin/documents/register-url`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ shopId: SHOP_ID, type, slot, fileUrl, title: slot }),
@@ -59,6 +60,7 @@ export async function registerSiteImageUrlAction(
 
     revalidatePath("/");
     revalidatePath("/portal/top");
+    revalidatePath("/takeout");
     return {
       ok:     true,
       fileUrl: data.document?.fileUrl,
@@ -77,7 +79,7 @@ export async function deleteSiteImageAction(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch(
-      `${BASE_URL}/api/portal/documents/${id}?shopId=${SHOP_ID}`,
+      `${BASE_URL}/api/admin/documents/${id}?shopId=${SHOP_ID}`,
       { method: "DELETE" }
     );
     const data = await res.json();

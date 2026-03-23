@@ -1,28 +1,36 @@
 import type { Metadata } from "next";
 import { listDocuments } from "../../lib/adminDocuments";
-import DocumentManager from "./_components/DocumentManager";
+import MediaManager from "./_components/MediaManager";
 
-export const metadata: Metadata = { title: "資料管理 | きたげん管理画面" };
+export const metadata: Metadata = { title: "メディア管理 | きたげん管理画面" };
 
-export default async function DocumentsPage() {
-  const [menuDocs, calendarDocs] = await Promise.all([
-    listDocuments("menu"),
+export default async function MediaPage() {
+  const [topDocs, shopDocs, takeoutDocs, lunchDocs, dinnerDocs, calendarDocs] = await Promise.all([
+    listDocuments("top"),
+    listDocuments("shop"),
+    listDocuments("takeout"),
+    listDocuments("lunch"),
+    listDocuments("dinner"),
     listDocuments("calendar"),
   ]);
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-xl font-bold text-slate-800">資料管理</h1>
+        <h1 className="text-xl font-bold text-slate-800">メディア管理</h1>
         <p className="text-sm text-slate-500 mt-1">
-          メニュー資料・カレンダー資料のアップロードと公開管理。
-          PDF・JPG・PNG・WEBP に対応しています。
+          サイト画像・各種PDF・資料をまとめて管理します。
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <DocumentManager menuDocs={menuDocs} calendarDocs={calendarDocs} />
-      </div>
+      <MediaManager
+        topDocs={topDocs}
+        shopDocs={shopDocs}
+        takeoutDocs={takeoutDocs}
+        lunchDocs={lunchDocs}
+        dinnerDocs={dinnerDocs}
+        calendarDocs={calendarDocs}
+      />
     </div>
   );
 }
