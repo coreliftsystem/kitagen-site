@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { MapPin, ExternalLink } from "lucide-react";
+import { listDocuments } from "../lib/adminDocuments";
+import CalendarViewer from "../components/CalendarViewer";
 
 export const metadata: Metadata = {
   title: "店舗情報｜きたげん",
@@ -26,9 +28,6 @@ const HOURS = {
   },
   closed: "日曜日（変動あり）",
 };
-
-// 営業日カレンダーのURL（Google カレンダー等に差し替えてください）
-const CALENDAR_URL = "https://www.instagram.com/kitagen_izakaya/";
 
 const SEATS = {
   count:    "41席",
@@ -65,7 +64,10 @@ function SectionLabel({ en, ja }: { en: string; ja: string }) {
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-export default function InfoPage() {
+export default async function InfoPage() {
+  const calendarDocs   = await listDocuments("calendar");
+  const activeCalendar = calendarDocs.find((d) => d.isActive) ?? null;
+
   return (
     <div className="min-h-screen pt-16">
 
@@ -136,24 +138,21 @@ export default function InfoPage() {
           </div>
 
           {/* 補足 + カレンダー導線 */}
-          <div className="mt-5 space-y-3">
-            <p className="text-xs text-muted/70 leading-relaxed">
-              ※ 営業日・臨時休業はカレンダーをご確認ください
-            </p>
-            <a
-              href={CALENDAR_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-accent border border-accent/40
-                         px-4 py-2 rounded-sm hover:bg-accent/5 transition-colors duration-200"
-            >
-              営業日カレンダーを見る
-              <ExternalLink size={13} strokeWidth={1.8} />
-            </a>
-            <p className="text-xs text-muted/60 leading-relaxed">
-              ※ 急な営業時間の変更はInstagramでお知らせする場合があります
-            </p>
-          </div>
+          {activeCalendar && (
+            <div className="mt-5 space-y-3">
+              <p className="text-xs text-muted/70 leading-relaxed">
+                ※ 営業日・臨時休業はカレンダーでご確認いただけます
+              </p>
+              <p className="text-xs text-muted/60 leading-relaxed">
+                ※ 急な営業時間の変更はInstagramでお知らせする場合があります
+              </p>
+              <CalendarViewer
+                fileUrl={activeCalendar.fileUrl}
+                resourceType={activeCalendar.resourceType}
+                format={activeCalendar.format}
+              />
+            </div>
+          )}
 
         </section>
 

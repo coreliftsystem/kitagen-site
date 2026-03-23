@@ -148,7 +148,7 @@ const TABS: { key: TabKey; label: string; desc: string }[] = [
   {
     key:   "calendar",
     label: "カレンダー",
-    desc:  "営業カレンダーなどを登録できます。新しいファイルをアップロードすると、現在公開中のものは自動的に非公開になります。",
+    desc:  "常に1件のみ公開されます。差し替えると、現在公開中のものは自動的に非公開になります。",
   },
 ];
 
@@ -449,7 +449,11 @@ export default function DocumentManager({
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 disabled:opacity-60 transition-colors"
             >
               {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
-              {uploading ? "アップロード中..." : "ファイルをアップロード"}
+              {uploading
+                ? "アップロード中..."
+                : tab === "calendar" && activeCalendar
+                  ? "カレンダーを差し替える"
+                  : "ファイルをアップロード"}
             </button>
             <p className="text-xs text-slate-400 mt-2">
               JPG / PNG / WEBP / PDF（最大 20MB）・{currentTabDef.desc}

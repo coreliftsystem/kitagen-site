@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Utensils, ImageIcon } from "lucide-react";
+import { Utensils } from "lucide-react";
 import Link from "next/link";
 import { getMenusForDinner, getMenusForTop, groupByCategorySub } from "../../lib/menus";
 import { listDocuments } from "../../lib/adminDocuments";
+import ImageGallery from "../../components/ImageGallery";
 
 // ドリンクカテゴリの表示順（居酒屋として自然な並び）
 const DRINK_CATEGORY_ORDER = [
@@ -120,7 +121,10 @@ export default async function DinnerMenuPage() {
     getMenusForTop(),
     listDocuments("dinner"),
   ]);
-  const activeDoc = dinnerDocs.find((d) => d.isActive) ?? null;
+  const galleryImages = dinnerDocs
+    .filter((d) => d.isActive && d.resourceType === "image")
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((d) => ({ url: d.fileUrl, alt: d.title }));
   const foodSections  = groupByCategorySub(allItems.filter((i) => i.category_main === "food"));
   const drinkSections = sortDrinkSections(
     groupByCategorySub(allItems.filter((i) => i.category_main === "drink")),
@@ -213,24 +217,15 @@ export default async function DinnerMenuPage() {
       <MenuCategorySection id="food"  label="FOOD"  title="フード"   sections={foodSections}  />
       <MenuCategorySection id="drink" label="DRINK" title="ドリンク" sections={drinkSections} />
 
-      {/* ── メニューを見る ─────────────────────────────────── */}
-      {activeDoc && (
+      {/* ── メニュー画像ギャラリー ───────────────────────────── */}
+      {galleryImages.length > 0 && (
         <section className="py-16 px-4 section-warm border-t border-border">
-          <div className="max-w-3xl mx-auto text-center">
-            <p className="text-xs tracking-[0.4em] text-accent/80 mb-3">MENU</p>
-            <h2 className="text-xl font-bold text-foreground mb-3">ディナーメニューを見る</h2>
-            <p className="text-sm text-muted mb-8">
-              全品目・価格を掲載したメニューをご用意しています。
-            </p>
-            <a
-              href={activeDoc.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-10 py-3 bg-accent hover:bg-accent/90 text-white rounded-sm text-sm tracking-wider transition-colors duration-200"
-            >
-              <ImageIcon size={14} strokeWidth={1.5} />
-              メニューを見る
-            </a>
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <p className="text-xs tracking-[0.4em] text-accent/80 mb-3">MENU</p>
+              <h2 className="text-xl font-bold text-foreground">ディナーメニューを見る</h2>
+            </div>
+            <ImageGallery images={galleryImages} />
           </div>
         </section>
       )}
