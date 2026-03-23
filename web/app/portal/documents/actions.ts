@@ -15,7 +15,7 @@ function parseDocument(raw: Record<string, any>): DocumentItem {
     type:               VALID_TYPES.includes(raw.type) ? raw.type : "menu",
     slot:               raw.slot ? String(raw.slot) : null,
     title:              String(raw.title ?? ""),
-    fileUrl:            String(raw.fileUrl ?? ""),
+    fileUrl:            /^https?:\/\//.test(raw.fileUrl ?? "") ? String(raw.fileUrl) : "",
     cloudinaryPublicId: raw.cloudinaryPublicId ? String(raw.cloudinaryPublicId) : null,
     sourceType:         raw.sourceType === "url" ? "url" : "upload",
     resourceType:       raw.resourceType === "raw" ? "raw" : "image",

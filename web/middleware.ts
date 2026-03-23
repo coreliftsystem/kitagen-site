@@ -1,4 +1,4 @@
-// web/proxy.ts
+// web/middleware.ts
 //
 // 役割：
 //   管理画面認証 — /portal/* への未認証アクセスを /portal/auth へリダイレクト
@@ -10,12 +10,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, verifySessionToken } from "@/lib/session";
 
 export const config = {
-  // 管理画面パスのみに絞る（_next/ や静的アセットを巻き込まない）
-  matcher: ["/portal/:path*"],
+  matcher: ["/portal/:path*", "/admin/:path*"],
 };
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // 旧 /admin/* は /portal/auth へリダイレクト（削除済みルートへのアクセス対策）
+  if (pathname.startsWith("/admin")) {
+    const dest = req.nextUrl.clone();
+    dest.pathname = "/portal/auth";
+    return NextResponse.redirect(dest);
+  }
 
   // 認証ページ自体は認証不要
   if (pathname.startsWith("/portal/auth")) {

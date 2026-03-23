@@ -1,5 +1,12 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  { key: "X-Frame-Options",        value: "SAMEORIGIN" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy",        value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy",     value: "camera=(), microphone=(), geolocation=()" },
+];
+
 const BACKEND_URL = process.env.MENU_API_BASE_URL ?? "";
 
 function getRemotePatterns(): {
@@ -31,6 +38,9 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "20mb",
     },
+  },
+  async headers() {
+    return [{ source: "/(.*)", headers: securityHeaders }];
   },
   images: {
     remotePatterns: [

@@ -1,6 +1,0 @@
-import { redirect } from "next/navigation";
-
-// /admin/login は /admin/auth に統合されました
-export default function LoginRedirect() {
-  redirect("/admin/auth");
-}

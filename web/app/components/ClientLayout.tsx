@@ -11,12 +11,12 @@ interface Props {
 
 /**
  * パスに応じてサイト共通ヘッダー・フッターを出し分けるクライアント境界。
- * /admin 配下では公開サイトの Header/Footer を非表示にし、
+ * /portal 配下では公開サイトの Header/Footer を非表示にし、
  * 管理画面独自のレイアウトに完全に委ねる。
  */
 export default function ClientLayout({ header, footer, children }: Props) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith("/portal") || pathname.startsWith("/admin");
+  const isAdmin = pathname.startsWith("/portal");
 
   if (isAdmin) {
     // 管理画面: main ラッパーもヘッダー/フッターも外す
