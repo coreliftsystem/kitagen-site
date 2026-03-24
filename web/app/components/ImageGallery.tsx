@@ -21,6 +21,12 @@ export default function ImageGallery({ images }: Props) {
   const scrollRef  = useRef<HTMLDivElement>(null);
   const itemRefs   = useRef<(HTMLDivElement | null)[]>([]);
 
+  // マウスドラッグ用
+  const isDragging      = useRef(false);
+  const dragStartX      = useRef(0);
+  const scrollStartLeft = useRef(0);
+  const dragMoved       = useRef(false); // クリックとドラッグを区別
+
   // ── スクロール位置から現在インデックスを検出 ──────────────────
   function handleScroll() {
     const container = scrollRef.current;
@@ -39,6 +45,42 @@ export default function ImageGallery({ images }: Props) {
   // ── ドットクリックでスクロール ────────────────────────────────
   function scrollToIndex(i: number) {
     itemRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+  }
+
+  // ── マウスドラッグ（PC対応） ──────────────────────────────────
+  function handleMouseDown(e: React.MouseEvent) {
+    if (!scrollRef.current) return;
+    isDragging.current      = true;
+    dragMoved.current       = false;
+    dragStartX.current      = e.clientX;
+    scrollStartLeft.current = scrollRef.current.scrollLeft;
+  }
+
+  function handleMouseMove(e: React.MouseEvent) {
+    if (!isDragging.current || !scrollRef.current) return;
+    const dx = e.clientX - dragStartX.current;
+    if (Math.abs(dx) > 5) dragMoved.current = true;
+    scrollRef.current.scrollLeft = scrollStartLeft.current - dx;
+  }
+
+  function handleMouseUp(e: React.MouseEvent) {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    const dx = e.clientX - dragStartX.current;
+    // 50px 以上動いたらスナップ移動
+    if (Math.abs(dx) > 50) {
+      if (dx < 0) scrollToIndex(Math.min(activeIndex + 1, count - 1));
+      else        scrollToIndex(Math.max(activeIndex - 1, 0));
+    } else {
+      scrollToIndex(activeIndex); // 元の位置に戻す
+    }
+  }
+
+  function handleMouseLeave() {
+    if (isDragging.current) {
+      isDragging.current = false;
+      scrollToIndex(activeIndex);
+    }
   }
 
   // ── キーボードナビゲーション（モーダル内） ────────────────────
@@ -105,40 +147,81 @@ export default function ImageGallery({ images }: Props) {
     );
   }
 
-  // ── 複数枚: 横スクロールギャラリー ───────────────────────────
+  // ── 複数枚: 横スクロールカルーセル（PC左右ボタン＋マウスドラッグ対応） ──
   return (
     <>
-      {/* スクロールコンテナ */}
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-3"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {/* WebKit スクロールバー非表示 */}
-        <style>{`.img-gallery::-webkit-scrollbar { display: none; }`}</style>
+      {/* カルーセルラッパー（PCボタン配置用） */}
+      <div className="relative group/carousel">
 
-        {images.map((img, i) => (
-          <div
-            key={i}
-            ref={(el) => { itemRefs.current[i] = el; }}
-            className="flex-none snap-start w-[85vw] md:w-auto"
-          >
-            <button
-              onClick={() => setModal(i)}
-              className="block w-full rounded-xl overflow-hidden border border-border
-                         bg-stone-50 shadow-sm hover:shadow-md transition-shadow
-                         active:scale-[0.99]"
+        {/* 左ボタン（PC: md以上で表示） */}
+        <button
+          onClick={() => scrollToIndex(Math.max(activeIndex - 1, 0))}
+          disabled={activeIndex === 0}
+          aria-label="前の画像"
+          className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10
+                     w-10 h-10 items-center justify-center
+                     bg-background border border-border rounded-full shadow-md
+                     text-foreground hover:text-accent hover:border-accent/50
+                     transition-all duration-200
+                     disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-foreground disabled:hover:border-border"
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        {/* スクロールコンテナ */}
+        <div
+          ref={scrollRef}
+          onScroll={handleScroll}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          className="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-3 select-none"
+          style={{ scrollbarWidth: "none", cursor: isDragging.current ? "grabbing" : "grab" }}
+        >
+          {/* WebKit スクロールバー非表示 */}
+          <style>{`.img-gallery::-webkit-scrollbar { display: none; }`}</style>
+
+          {images.map((img, i) => (
+            <div
+              key={i}
+              ref={(el) => { itemRefs.current[i] = el; }}
+              className="flex-none snap-start w-[85vw] md:w-auto"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={img.url}
-                alt={img.alt}
-                className="w-full h-[50vh] md:h-[60vh] md:w-auto object-contain"
-              />
-            </button>
-          </div>
-        ))}
+              <button
+                onClick={() => {
+                  if (dragMoved.current) return; // ドラッグ後はモーダルを開かない
+                  setModal(i);
+                }}
+                className="block w-full rounded-xl overflow-hidden border border-border
+                           bg-stone-50 shadow-sm hover:shadow-md transition-shadow
+                           active:scale-[0.99]"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.url}
+                  alt={img.alt}
+                  className="w-full h-[50vh] md:h-[60vh] md:w-auto object-contain pointer-events-none"
+                />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* 右ボタン（PC: md以上で表示） */}
+        <button
+          onClick={() => scrollToIndex(Math.min(activeIndex + 1, count - 1))}
+          disabled={activeIndex === count - 1}
+          aria-label="次の画像"
+          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10
+                     w-10 h-10 items-center justify-center
+                     bg-background border border-border rounded-full shadow-md
+                     text-foreground hover:text-accent hover:border-accent/50
+                     transition-all duration-200
+                     disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-foreground disabled:hover:border-border"
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
 
       {/* ドットインジケーター */}
