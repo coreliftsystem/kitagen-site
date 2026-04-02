@@ -24,7 +24,9 @@ function mapApiItem(raw: Record<string, unknown>): PublicMenuItem {
     basePrice?: number | string;
     imageUrl?: string;
     category?: string;
+    category_main?: string;
     subCategory?: string;
+    category_sub?: string;
     sortOrder?: number | string;
     isNew?: boolean;
   };
@@ -41,8 +43,8 @@ function mapApiItem(raw: Record<string, unknown>): PublicMenuItem {
         ? `¥${Number(basePrice).toLocaleString("ja-JP")}〜`
         : undefined,
     image: imageUrl && String(imageUrl).trim() !== "" ? String(imageUrl) : null,
-    category_main: String(record.category ?? ""),
-    category_sub: String(record.subCategory ?? ""),
+    category_main: String(record.category ?? record.category_main ?? ""),
+    category_sub: String(record.subCategory ?? record.category_sub ?? ""),
     sortOrder: Number(record.sortOrder ?? 0),
     isNew: record.isNew === true,
   };
